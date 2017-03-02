@@ -1,0 +1,15 @@
+syntax = "proto3";
+package invoice;
+
+service Invoice {
+  rpc Get(Id) returns (Invoice) {}
+}
+
+message Id {
+  string guid = 1;
+  int32 id = 2;
+}
+
+message Invoice {
+  int32 id = 1;
+}

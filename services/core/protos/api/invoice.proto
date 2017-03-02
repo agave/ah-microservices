@@ -1,0 +1,22 @@
+syntax = "proto3";
+package invoice;
+
+option go_package = "github.com/agave/ah-microservices/services/grpc-gateway/src/api/invoice/generated";
+
+import "google/api/annotations.proto";
+
+service Invoice {
+  rpc Get(InvoiceId) returns (Invoice) {
+    option (google.api.http) = {
+      get: "/api/v1/invoice/{id}"
+    };
+  }
+}
+
+message InvoiceId {
+  int32 id = 1;
+}
+
+message Invoice {
+  int32 id = 1;
+}

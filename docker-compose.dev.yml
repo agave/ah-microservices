@@ -1,0 +1,20 @@
+version: '2'
+
+services:
+  db:
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data/pgdata
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata
+  invoices:
+    volumes:
+      - ./services/invoices/src:/var/lib/app
+      - ./services/invoices/scripts:/home/docker
+      - ./services/core:/var/lib/core
+      # prevent mounting node_modules to avoid cross-platform incompatibilities
+      - /var/lib/app/node_modules
+    ports:
+      - "8080:80"
+    environment:
+      NODE_ENV: development
+    entrypoint: /home/docker/startup.integration.sh

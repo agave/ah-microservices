@@ -1,0 +1,5 @@
+version: '2'
+
+services:
+  invoices:
+    entrypoint: /home/docker/startup.integration.sh
