@@ -1,0 +1,6 @@
+hash: f2cd9992366fedb471ca0c657a0da262bdb48812efede96dba043cf402e9d21a
+updated: 2017-03-02T16:23:33.031610723-06:00
+imports:
+- name: gopkg.in/Shopify/sarama.v1
+  version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
+testImports: []
