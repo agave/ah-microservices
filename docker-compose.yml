@@ -8,6 +8,8 @@ services:
       container_group: service
   kafka:
     image: wurstmeister/kafka
+    links:
+      - zookeeper
     ports:
       - "9092"
     environment:
