@@ -36,10 +36,13 @@ node_modules
 # Runtime configuration for swagger app
 config/runtime.yaml
 
-# GRPC Gateway
-grpc-gateway
-!grpc-gateway/
+# Go
+vendor/
 *.zip
 *.pb*
 *.swagger.json
 *.coverprofile
+
+# GRPC Gateway
+grpc-gateway
+!grpc-gateway/
