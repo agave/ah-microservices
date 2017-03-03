@@ -2,24 +2,26 @@ const Kafka = require('/var/lib/app/node_modules/node-rdkafka');
 
 class KafkaProducer {
   constructor(config) {
+    this.topicName = config.topic;
     this.producer = new Kafka.Producer(config);
-    this.topic = config.topic;
-    this.producer.on('error', this.errorHandler);
+
+    this.producer.on('error', err => this.errorHandler(err));
+    this.producer.on('disconnect', () => console.log('Producer disconnected'));
+    this.producer.on('event.log', log => console.log('Producer event', log));
+    this.producer.on('delivery-report', report => {
+      console.log('delivery-report: ' + JSON.stringify(report));
+    });
   }
 
   connect() {
     this.producer.connect();
-    this.producer.on('ready', () => {
+    this.producer.on('ready', result => {
       this.ready = true;
+      this.topic = this.producer.Topic(this.topicName, { 'request.required.acks': 1 });
     });
 
     return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (this.ready) {
-          return resolve();
-        }
-        return reject(`Unable to establish connection to host ${this.config['metadata.broker.list']}`);
-      }, 1000)
+      setTimeout(() => this.ready ? resolve() : reject('Connection failed'), 1000);
     });
   }
 
@@ -27,11 +29,10 @@ class KafkaProducer {
     return new Promise((resolve, reject) => {
       try {
         this.producer.produce(
-          this.topic,
+          this.topicName,
           message.id,
-          new Buffer(message),
-          guid,
-          Date.now()
+          new Buffer(JSON.stringify(message)),
+          guid
         );
 
         return resolve();
@@ -42,15 +43,11 @@ class KafkaProducer {
   }
 
   errorHandler(err) {
-    console.log(err);
+    console.log('Producer error', err);
   }
 
   disconnect() {
-    return new Promise((resolve, reject) => {
-      this.producer.disconnect();
-      this.producer.on('disconnect', () => resolve());
-      this.producer.on('error', err => reject(err));
-    });
+    this.producer.disconnect();
   }
 }
 
