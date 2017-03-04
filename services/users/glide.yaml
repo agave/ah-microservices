@@ -2,3 +2,5 @@ package: github.com/agave/ah-microservices/services/users
 import:
 - package: gopkg.in/Shopify/sarama.v1
   version: ~1.11.0
+- package: github.com/Sirupsen/logrus
+  version: ~0.11.4

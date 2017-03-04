@@ -1,6 +1,36 @@
-hash: f2cd9992366fedb471ca0c657a0da262bdb48812efede96dba043cf402e9d21a
-updated: 2017-03-02T16:23:33.031610723-06:00
+hash: 99c96260951c2896ab2d7c3fa0e5a7f82e4dbf2234923afc1ee20954b2459b01
+updated: 2017-03-03T10:57:30.679824778-06:00
 imports:
+- name: github.com/davecgh/go-spew
+  version: 346938d642f2ec3594ed81d874461961cd0faa76
+  subpackages:
+  - spew
+- name: github.com/eapache/go-resiliency
+  version: b86b1ec0dd4209a588dc1285cdd471e73525c0b3
+  subpackages:
+  - breaker
+- name: github.com/eapache/go-xerial-snappy
+  version: bb955e01b9346ac19dc29eb16586c90ded99a98c
+- name: github.com/eapache/queue
+  version: 44cc805cf13205b55f69e14bcb69867d1ae92f98
+- name: github.com/golang/snappy
+  version: 553a641470496b2327abcac10b36396bd98e45c9
+- name: github.com/klauspost/crc32
+  version: 1bab8b35b6bb565f92cbc97939610af9369f942a
+- name: github.com/pierrec/lz4
+  version: 90290f74b1b4d9c097f0a3b3c7eba2ef3875c699
+- name: github.com/pierrec/xxHash
+  version: 5a004441f897722c627870a981d02b29924215fa
+  subpackages:
+  - xxHash32
+- name: github.com/rcrowley/go-metrics
+  version: 1f30fe9094a513ce4c700b9a54458bbb0c96996c
+- name: github.com/Sirupsen/logrus
+  version: 0208149b40d863d2c1a2f8fe5753096a9cf2cc8b
+- name: golang.org/x/sys
+  version: e48874b42435b4347fc52bdee0424a52abc974d7
+  subpackages:
+  - unix
 - name: gopkg.in/Shopify/sarama.v1
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
 testImports: []

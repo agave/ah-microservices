@@ -8,6 +8,6 @@ COPY users/scripts /home/docker
 
 RUN chmod +x /home/docker/*.sh \
     && make
-RUN apk del --no-progress curl git make
+RUN apk del --no-progress curl git make gcc g++
 
 ENTRYPOINT ./users
