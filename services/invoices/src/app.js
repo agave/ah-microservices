@@ -1,32 +1,44 @@
+const Logger = require('/var/lib/core/js/log');
+const log = new Logger(module);
 const grpc = require('grpc');
 const server = new grpc.Server();
 const port = process.env.PORT || 50051;
-// const kafkaProducer = require('./api/vendor/kafka-producer');
-// const kafkaConsumer = require('./api/vendor/kafka-consumer');
+const consumers = require('./api/consumers');
+const kafkaProducer = require('./api/vendor/kafka-producer');
+const kafkaConsumer = require('./api/vendor/kafka-consumer');
 
 // Protos
 const invoiceProto = grpc.load('/var/lib/core/protos/invoice.proto').invoice;
 
-// Controllers
-const Invoice = require('./api/controllers/invoice.js');
+// GRPC Controllers
+const InvoiceController = require('./api/controllers/invoice');
 
 function initGRPCServer() {
-  server.addProtoService(invoiceProto.Invoice.service, Invoice);
+  server.addProtoService(invoiceProto.Invoice.service, InvoiceController);
   server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
   server.start();
 
-  console.log(`Listening on port ${port}`);
+  log.message(`Listening on port ${port}`);
 }
 
-// kafkaProducer
-// .connect()
-// .then(() => kafkaConsumer.connect(data => console.log('Consumer message', data)))
-// .then(() => initGRPCServer())
-// .catch(err => {
-//   console.log(err);
-//   process.exit(1);
-// });
+function initKafkaProducer() {
+  return kafkaProducer.connect();
+}
 
-initGRPCServer();
+function initKafkaConsumer() {
+  return kafkaConsumer.connect(consumers);
+}
+
+Promise.resolve()
+.then(() => initKafkaProducer())
+.then(() => initKafkaConsumer())
+.then(() => initGRPCServer())
+.catch(err => {
+  log.error(err, '', {
+    msg: 'Unable to initialize service'
+  });
+  /* eslint no-process-exit: 0 */
+  process.exit(1);
+});
 
 module.exports.app = server;
