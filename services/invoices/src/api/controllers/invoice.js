@@ -4,26 +4,6 @@ const { Invoice } = require('../../models');
 const invoiceProducer = require('../producers/invoice');
 
 class InvoiceController {
-
-  _getInvoiceInfo({ dataValues }) {
-    const { id, provider_id, investor_id, amount, status, created_at, updated_at } = dataValues;
-
-    const info = {
-      id,
-      provider_id,
-      amount,
-      status,
-      created_at: created_at.toString(),
-      updated_at: updated_at.toString()
-    };
-
-    if (investor_id) {
-      info.investor_id = investor_id;
-    }
-
-    return info;
-  }
-
   create({ request }, callback) {
     const { provider_id, amount } = request;
     const data = { provider_id, amount, status: 'new' };
@@ -34,7 +14,7 @@ class InvoiceController {
     .then(invoice => {
       log.message('Create invoice', invoice, 'Response', request.guid);
 
-      return callback(null, this._getInvoiceInfo(invoice));
+      return callback(null, invoice.summary());
     })
     .catch(e => {
       log.error(e, request.guid);
@@ -59,7 +39,7 @@ class InvoiceController {
 
       log.message('Get invoice', invoice, 'Response', request.guid);
 
-      return callback(null, this._getInvoiceInfo({ dataValues: invoice }));
+      return callback(null, invoice.summary());
     })
     .catch(e => {
       log.error(e, request.guid);
@@ -100,7 +80,7 @@ class InvoiceController {
     .then(() => {
       log.message('Fund invoice', this.invoice, 'Response', guid);
 
-      return callback(null, this._getInvoiceInfo(this.invoice));
+      return callback(null, this.invoice.summary());
     })
     .catch(e => {
       log.error(e, request.guid);
