@@ -1,20 +1,5 @@
-function waitForAppStart(server, done) {
-  if (server.app.started) {
-    return done();
-  }
+const app = require('../app');
 
-  return setTimeout(() => {
-    waitForAppStart(server, done);
-  }, 1000);
-}
+before(() => app.initPromise);
 
-before(function(done) {
-  return waitForAppStart(require('../app'), done);
-});
-
-after(function(done) {
-  const server = require('../app');
-
-  server.app.forceShutdown();
-  return done();
-});
+after(() => app.shutdown());
