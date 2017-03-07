@@ -32,9 +32,9 @@ const config = {
   kafkaConsumer: {
     'group.id': 'invoices-consumer-service',
     'metadata.broker.list': `${env.KAFKA_HOST}:${env.KAFKA_PORT}`,
-    'enable.auto.commit': true,
+    'enable.auto.commit': false,
     'event_cb': true,
-    topics: ['invoice']
+    topics: [ 'invoice', 'user' ]
   }
 };
 
