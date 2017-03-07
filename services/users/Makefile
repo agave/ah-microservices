@@ -6,16 +6,17 @@ BIN   	= users
 
 default: all
 
-# all: proto lint clean-all test build
-all: lint test clean-all build
+all: proto lint test clean-all build
 build: deps
 	$(GOCMD) build -a -o $(BIN) .
 lint: fmt vet deps
-	$(GOCMD) get -u github.com/alecthomas/gometalinter
-	gometalinter --install
-	gometalinter ./... --vendor --disable=gotype --deadline=1000s --exclude="pb.*"
-	rm -rf $(GOPATH)/src/github.com/alecthomas/gometalinter
-	rm -rf $(GOPATH)/bin/gometalinter
+	$(GOCMD) get -u gopkg.in/alecthomas/gometalinter.v1
+	gometalinter.v1 --install
+	gometalinter.v1 ./... \
+		--vendor --disable=gotype \
+		--deadline=1000s --exclude="pb.*" --debug
+	rm -rf $(GOPATH)/src/gopkg.in/alecthomas/gometalinter.v1
+	rm -rf $(GOPATH)/bin/gometalinter.v1
 vet:
 	$(GOCMD) vet $(PKG)
 fmt:
@@ -36,13 +37,11 @@ install:
 	$(GOCMD) install
 run: all
 	./$(BIN)
-protobuf:
+install-protobuf:
 	$(GOCMD) get -u github.com/golang/protobuf/proto
 	$(GOCMD) get -u github.com/golang/protobuf/protoc-gen-go
-	$(GOCMD) get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
-	$(GOCMD) get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
-proto: protobuf
-	./scripts/proto-gen.sh $(api_endpoints_path)
+proto: install-protobuf
+	/home/docker/proto-gen.sh $(import_path) $(service_proto)
 regen: del proto
 del:
 	# TODO: implement

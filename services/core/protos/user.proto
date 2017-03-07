@@ -1,0 +1,26 @@
+syntax = "proto3";
+package user;
+
+option go_package = "github.com/agave/ah-microservices/services/users/user/generated";
+
+service User {
+	rpc GetUser(Id) returns (Profile) {}
+	rpc CreateUser(Create) returns (Profile) {}
+}
+
+message Id {
+	string guid = 1;
+	int32 id = 2;
+}
+
+message Profile {
+	string id = 1;
+	string email = 2;
+	float balance = 3;
+	float heldBalance = 4;
+}
+
+message Create {
+	string email = 1;
+	float balance = 2;
+}
