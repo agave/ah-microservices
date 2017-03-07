@@ -1,4 +1,4 @@
-class Consumer {
+class BaseConsumer {
   constructor(topic) {
     this.topic = topic;
   }
@@ -14,4 +14,4 @@ class Consumer {
   }
 }
 
-module.exports = new Consumer();
+module.exports = BaseConsumer;

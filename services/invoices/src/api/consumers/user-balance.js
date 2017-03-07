@@ -11,76 +11,85 @@ class UserConsumer extends BaseConsumer {
 
   balanceReserved(event) {
     const { value } = event;
-    const { body } = value;
+    const { body, guid } = value;
     const query = {
       where: {
-        id: body.invoice_id
+        id: body.invoice_id,
+        status: 'pending_fund'
       }
     };
 
-    log.message('Consuming user event', event, 'Event', value.guid);
+    log.message('Consuming user event', event, 'Event', guid);
 
     return Invoice.findOne(query)
     .then(invoice => {
       if (!invoice) {
-        return invoiceProducer.reservationNotFound(body.invoice_id, body.user_id);
+        return invoiceProducer.reservationNotFound(body.invoice_id, body.user_id, guid);
       }
 
       return invoice.update({ status: 'funded' });
     })
-    .then(invoice => invoiceProducer.invoiceFunded(invoice.id, body.user_id))
+    .then(updatedInvoice => {
+      if (updatedInvoice) {
+        return invoiceProducer.invoiceFunded(updatedInvoice.id, body.user_id, guid);
+      }
+
+      return true;
+    })
     .catch(err => {
-      log.error(err, value.guid);
+      log.error(err, guid);
       throw err;
     });
   }
 
   insufficientBalance(event) {
     const { value } = event;
-    const { body } = value;
+    const { body, guid } = value;
     const query = {
       where: {
-        id: body.invoice_id
+        id: body.invoice_id,
+        status: 'pending_fund'
       }
     };
 
-    log.message('Consuming user event', event, 'Event', value.guid);
+    log.message('Consuming user event', event, 'Event', guid);
 
     return Invoice.findOne(query)
     .then(invoice => {
       if (!invoice) {
-        return invoiceProducer.reservationNotFound(body.invoice_id, body.user_id);
+        return invoiceProducer.reservationNotFound(body.invoice_id, body.user_id, guid);
       }
 
       return invoice.update({ status: 'new' });
     })
     .catch(err => {
-      log.error(err, value.guid);
+      log.error(err, guid);
       throw err;
     });
   }
 
   userNotFound(event) {
     const { value } = event;
-    const { body } = value;
+    const { body, guid } = value;
     const query = {
       where: {
-        id: body.invoice_id
+        id: body.invoice_id,
+        status: 'pending_fund'
       }
     };
 
-    log.message('Consuming user event', event, 'Event', value.guid);
+    log.message('Consuming user event', event, 'Event', guid);
 
     return Invoice.findOne(query)
     .then(invoice => {
       if (!invoice) {
-        return invoiceProducer.reservationNotFound(body.invoice_id, body.user_id);
+        return invoiceProducer.reservationNotFound(body.invoice_id, body.user_id, guid);
       }
 
       return invoice.update({ status: 'new' });
     })
     .catch(err => {
-      log.error(err, value.guid);
+      log.error(err, guid);
       throw err;
     });
   }

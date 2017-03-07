@@ -10,7 +10,7 @@ fs
   return file.indexOf('.') !== 0 && file !== basename && file.slice(-3) === '.js';
 })
 .forEach(file => {
-  const handler = require(file);
+  const handler = require(`./${file}`);
 
   if (handler.topic) {
     handlers[handler.topic] = handler;
