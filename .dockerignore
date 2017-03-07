@@ -1,2 +1,3 @@
 services/*/src/node_modules
 services/*/vendor
+services/*/*/generated

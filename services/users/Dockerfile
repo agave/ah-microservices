@@ -3,11 +3,11 @@ FROM gypsydiver/golang-base:latest
 WORKDIR /go/src/github.com/agave/ah-microservices/services/users
 
 ADD users .
-# COPY protos
+COPY core/protos protos
 COPY users/scripts /home/docker
 
 RUN chmod +x /home/docker/*.sh \
-    && make
+    && make import_path=protos service_proto=user
 RUN apk del --no-progress curl git make gcc g++
 
 ENTRYPOINT ./users

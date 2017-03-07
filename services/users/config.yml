@@ -1,0 +1,5 @@
+KafkaBrokers:
+  - "kafka:9092"
+KafkaTopics:
+  - "users"
+ConsumerGroupID: "consumer-users"
