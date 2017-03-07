@@ -21,7 +21,7 @@ class Log {
     return module.filename.split('/').slice(-2).join('/');
   }
 
-  message(msg, data, type, guid) {
+  message(msg, data = {}, type = '', guid = '') {
     const obj = {
       guid,
       type,
@@ -32,7 +32,7 @@ class Log {
     this.log.info(obj);
   }
 
-  error(e, guid, extraData) {
+  error(e, guid = '', extraData = {}) {
     const obj = {
       msg: e.message,
       guid,
@@ -43,7 +43,7 @@ class Log {
     this.log.error(obj);
   }
 
-  warn(msg, data, guid) {
+  warn(msg, data = {}, guid = '') {
     const obj = {
       guid,
       msg,
