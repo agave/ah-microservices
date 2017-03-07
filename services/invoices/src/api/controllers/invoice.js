@@ -1,6 +1,7 @@
 const Logger = require('/var/lib/core/js/log');
 const log = new Logger(module);
 const { Invoice } = require('../../models');
+const invoiceProducer = require('../producers/invoice');
 
 class InvoiceController {
 
@@ -76,21 +77,30 @@ class InvoiceController {
         status: 'new'
       }
     };
+    const { investor_id, guid } = request;
 
     return Invoice.findOne(query)
     .then(invoice => {
       if (!invoice) {
         throw new Error('Invoice not found');
       }
+      if (invoice.provider_id === investor_id) {
+        throw new Error('Owner can\'t fund his own invoice');
+      }
 
-      log.message('Updating invoice to pending_fund status', invoice, 'Step', request.guid);
+      log.message('Updating invoice to pending_fund status', invoice, 'Step', guid);
 
-      return invoice.update({ status: 'pending_fund', investor_id: request.investor_id });
+      return invoice.update({ status: 'pending_fund', investor_id });
     })
     .then(invoice => {
-      log.message('Fund invoice', invoice, 'Response', request.guid);
+      this.invoice = invoice;
 
-      return callback(null, this._getInvoiceInfo(invoice));
+      return invoiceProducer.invoiceReserved(invoice.id, invoice.amount, investor_id, guid);
+    })
+    .then(() => {
+      log.message('Fund invoice', this.invoice, 'Response', guid);
+
+      return callback(null, this._getInvoiceInfo(this.invoice));
     })
     .catch(e => {
       log.error(e, request.guid);

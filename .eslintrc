@@ -144,9 +144,6 @@
         "allowSingleLine": false
       }
     ],
-    "camelcase": [1, {                      // http://eslint.org/docs/rules/camelcase
-      "properties": "always"
-    }],
     "comma-spacing": [2, {                  // http://eslint.org/docs/rules/comma-spacing
       "before": false,
       "after": true
