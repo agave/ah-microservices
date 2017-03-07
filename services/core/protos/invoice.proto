@@ -2,7 +2,7 @@ syntax = "proto3";
 package invoice;
 
 service Invoice {
-  rpc Get(Id) returns (Invoice) {}
+  rpc Get(Id) returns (InvoiceInfo) {}
 }
 
 message Id {
@@ -10,6 +10,6 @@ message Id {
   int32 id = 2;
 }
 
-message Invoice {
+message InvoiceInfo {
   int32 id = 1;
 }
