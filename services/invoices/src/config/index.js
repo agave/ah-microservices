@@ -1,10 +1,16 @@
 const env = process.env;
 const nodeEnv = env.NODE_ENV || 'development';
-let database = env.DB_NAME;
 const logging = nodeEnv === 'test' ? false : console.log;
+let database = env.DB_NAME;
+let kafkaConsumerGroup = 'invoices-consumer-service';
+let kafkaOffsetReset = 'earliest';
 
 if (nodeEnv === 'test' || nodeEnv === 'development') {
   database = nodeEnv === 'test' ? database + '_test' : database + '_dev';
+  // Avoid group restabilization to improve consumer initialization time
+  kafkaConsumerGroup = kafkaConsumerGroup + Math.random();
+  // Avoid reprocessing messages when running tests
+  kafkaOffsetReset = nodeEnv === 'test' ? 'latest' : kafkaOffsetReset;
 }
 
 const config = {
@@ -30,11 +36,12 @@ const config = {
     topic: 'invoice'
   },
   kafkaConsumer: {
-    'group.id': 'invoices-consumer-service',
+    'group.id': kafkaConsumerGroup,
     'metadata.broker.list': `${env.KAFKA_HOST}:${env.KAFKA_PORT}`,
     'enable.auto.commit': false,
     'event_cb': true,
-    topics: [ 'invoice', 'user' ]
+    'offsetReset': kafkaOffsetReset,
+    topics: [ 'user' ]
   }
 };
 
