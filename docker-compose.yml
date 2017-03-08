@@ -66,3 +66,11 @@ services:
     labels:
       container_group: service
     image: agavelab/ah-microservices-users
+    links:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: users
