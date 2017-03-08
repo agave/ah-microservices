@@ -1,0 +1,7 @@
+version: '2'
+
+services:
+  users:
+    entrypoint:
+      - /home/docker/startup.dev.sh
+      - bash
