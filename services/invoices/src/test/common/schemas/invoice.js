@@ -13,6 +13,10 @@ module.exports = {
     investor_id: {
       type: 'integer'
     },
+    amount: {
+      required: true,
+      type: 'number'
+    },
     status: {
       required: true,
       enum: [ 'new', 'pending_fund', 'funded' ]

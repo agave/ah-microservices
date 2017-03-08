@@ -5,12 +5,12 @@ class InvoiceFixtures {
     this.validInvoiceId = null;
   }
 
-  validInvoice() {
-    return factory.createInvoice(this.validInvoiceId, 1);
+  invalidInvoice() {
+    return factory.createInvoice(-1, -1, -2);
   }
 
-  fundInvoice() {
-    return factory.createInvoice(this.validInvoiceId, 1, 1);
+  validInvoice() {
+    return factory.createInvoice(this.validInvoiceId, 1, 2);
   }
 }
 
