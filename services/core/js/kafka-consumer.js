@@ -4,12 +4,18 @@ const log = new Logger(module);
 
 class KafkaConsumer {
   constructor(config) {
-    this.topics = config.topics;
+    const configClone = {};
+    const offsetReset = config.offsetReset;
 
-    delete config.topics;
+    Object.assign(configClone, config);
 
-    this.consumer = new Kafka.KafkaConsumer(config, {
-      'auto.offset.reset': 'earliest'
+    this.topics = configClone.topics;
+
+    delete configClone.topics;
+    delete configClone.offsetReset;
+
+    this.consumer = new Kafka.KafkaConsumer(configClone, {
+      'auto.offset.reset': offsetReset
     });
 
     this.consumer.on('disconnect', () => log.warn('Consumer disconnected'));
@@ -29,13 +35,12 @@ class KafkaConsumer {
     this.consumer.connect();
 
     return new Promise((resolve, reject) => {
-      setTimeout(() => this.ready ? resolve() : reject('Connection failed'), 1000);
+      setTimeout(() => this.ready ? resolve() : reject(new Error('Connection failed')), 3000);
     });
   }
 
   dataHandler(data, handler) {
     data.value = JSON.parse(data.value.toString());
-    data.value.type = data.value.type.substr(0, 1).toLowerCase() + data.value.type.substr(1);
 
     return handler.handle(data)
     .then(() => this.commit(data))

@@ -4,8 +4,12 @@ const log = new Logger(module);
 
 class KafkaProducer {
   constructor(config) {
-    this.topicName = config.topic;
-    this.producer = new Kafka.Producer(config);
+    const configClone = {};
+
+    Object.assign(configClone, config);
+
+    this.topicName = configClone.topic;
+    this.producer = new Kafka.Producer(configClone);
 
     this.producer.on('error', err => this.errorHandler(err));
     this.producer.on('disconnect', () => log.warn('Producer disconnected'));
@@ -26,11 +30,11 @@ class KafkaProducer {
     });
   }
 
-  produce({ message, key }) {
+  produce({ topic = this.topicName, message, key }) {
     return new Promise((resolve, reject) => {
       try {
         this.producer.produce(
-          this.topicName,
+          topic,
           null,
           new Buffer(JSON.stringify(message)),
           key
