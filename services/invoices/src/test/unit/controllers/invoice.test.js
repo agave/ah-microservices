@@ -6,6 +6,8 @@ const helperFixtures = require('../fixtures/controllers/invoice');
 
 const { Invoice } = require('../../../models');
 
+const invoiceProducer = require('../../../api/producers/invoice');
+
 chai.should();
 chai.use(require('chai-as-promised'));
 
@@ -30,7 +32,6 @@ describe('unit/Invoice controller', () => {
       .should.be.fulfilled
       .then(() => {
         Invoice.create.calledOnce.should.be.true;
-        Invoice.create.calledWith(createInvoiceData).should.be.true;
         callback.calledOnce.should.be.true;
         callback.calledWith(createError).should.be.true;
       });
@@ -55,7 +56,7 @@ describe('unit/Invoice controller', () => {
   describe('get', () => {
 
     const fixtures = helperFixtures.get;
-    const { request, findOneData, response } = fixtures;
+    const { request, findOneData, invoiceInstance, response } = fixtures;
 
     it('should reject if Invoice.findOne fails', () => {
       const callback = sandbox.spy();
@@ -67,16 +68,30 @@ describe('unit/Invoice controller', () => {
       .should.be.fulfilled
       .then(() => {
         Invoice.findOne.calledOnce.should.be.true;
-        Invoice.findOne.calledWith(findOneData).should.be.true;
         callback.calledOnce.should.be.true;
         callback.calledWith(findOneError).should.be.true;
+      });
+    });
+
+    it('should reject if invoice doesn\'t exist', () => {
+      const callback = sandbox.spy();
+      const error = new Error('Invoice not found');
+
+      sandbox.stub(Invoice, 'findOne', () => Promise.resolve());
+
+      return controller.get(request, callback)
+      .should.be.fulfilled
+      .then(() => {
+        Invoice.findOne.calledOnce.should.be.true;
+        callback.calledOnce.should.be.true;
+        callback.calledWithMatch(error).should.be.true;
       });
     });
 
     it('should return a successful response', () => {
       const callback = sandbox.spy();
 
-      sandbox.stub(Invoice, 'findOne', () => Promise.resolve(response));
+      sandbox.stub(Invoice, 'findOne', () => Promise.resolve(invoiceInstance));
 
       return controller.get(request, callback)
       .should.be.fulfilled
@@ -92,11 +107,12 @@ describe('unit/Invoice controller', () => {
   describe('fund', () => {
 
     const fixtures = helperFixtures.fund;
-    const { request, findOneData, updateData, invoiceInstance, response } = fixtures;
+    const { request, ownInvoiceFundRequest, findOneData, updateData, invoiceInstance, response } = fixtures;
 
     beforeEach(() => {
       sandbox.stub(Invoice, 'findOne', () => Promise.resolve(invoiceInstance));
       sandbox.stub(invoiceInstance, 'update', () => Promise.resolve(invoiceInstance));
+      sandbox.stub(invoiceProducer, 'invoiceUpdated', () => Promise.resolve());
     });
 
     it('should reject if Invoice.findOne fails', () => {
@@ -112,8 +128,44 @@ describe('unit/Invoice controller', () => {
         Invoice.findOne.calledOnce.should.be.true;
         Invoice.findOne.calledWith(findOneData).should.be.true;
         invoiceInstance.update.called.should.be.false;
+        invoiceProducer.invoiceUpdated.called.should.be.false;
         callback.calledOnce.should.be.true;
         callback.calledWith(findOneError).should.be.true;
+      });
+    });
+
+    it('should reject if invoice doesn\'t exist', () => {
+      const callback = sandbox.spy();
+      const error = new Error('Invoice not found');
+
+      Invoice.findOne.restore();
+      sandbox.stub(Invoice, 'findOne', () => Promise.resolve());
+
+      return controller.fund(request, callback)
+      .should.be.fulfilled
+      .then(() => {
+        Invoice.findOne.calledOnce.should.be.true;
+        Invoice.findOne.calledWith(findOneData).should.be.true;
+        invoiceInstance.update.called.should.be.false;
+        invoiceProducer.invoiceUpdated.called.should.be.false;
+        callback.calledOnce.should.be.true;
+        callback.calledWith(error).should.be.true;
+      });
+    });
+
+    it('should reject if provider tries to fund his own invoice', () => {
+      const callback = sandbox.spy();
+      const error = new Error('Provider can\'t fund his own invoice');
+
+      return controller.fund(ownInvoiceFundRequest, callback)
+      .should.be.fulfilled
+      .then(() => {
+        Invoice.findOne.calledOnce.should.be.true;
+        Invoice.findOne.calledWith(findOneData).should.be.true;
+        invoiceInstance.update.called.should.be.false;
+        invoiceProducer.invoiceUpdated.called.should.be.false;
+        callback.calledOnce.should.be.true;
+        callback.calledWithMatch(error).should.be.true;
       });
     });
 
@@ -128,9 +180,8 @@ describe('unit/Invoice controller', () => {
       .should.be.fulfilled
       .then(() => {
         Invoice.findOne.calledOnce.should.be.true;
-        Invoice.findOne.calledWith(findOneData).should.be.true;
         invoiceInstance.update.calledOnce.should.be.true;
-        invoiceInstance.update.calledWith(updateData).should.be.true;
+        invoiceProducer.invoiceUpdated.called.should.be.false;
         callback.calledOnce.should.be.true;
         callback.calledWith(updateError).should.be.true;
       });
@@ -143,9 +194,10 @@ describe('unit/Invoice controller', () => {
       .should.be.fulfilled
       .then(() => {
         Invoice.findOne.calledOnce.should.be.true;
-        Invoice.findOne.calledWith(findOneData).should.be.true;
         invoiceInstance.update.calledOnce.should.be.true;
         invoiceInstance.update.calledWith(updateData).should.be.true;
+        invoiceProducer.invoiceUpdated.calledOnce.should.be.true;
+        invoiceProducer.invoiceUpdated.calledWith(response, request.request.guid).should.be.true;
         callback.calledOnce.should.be.true;
         callback.calledWith(null, response).should.be.true;
       });

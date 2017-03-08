@@ -58,29 +58,27 @@ class InvoiceController {
       }
     };
     const { investor_id, guid } = request;
+    let invoice;
 
     return Invoice.findOne(query)
-    .then(invoice => {
-      if (!invoice) {
+    .then(invoiceInstance => {
+      if (!invoiceInstance) {
         throw new Error('Invoice not found');
       }
-      if (invoice.provider_id === investor_id) {
+      if (invoiceInstance.provider_id === investor_id) {
         throw new Error('Provider can\'t fund his own invoice');
       }
+      invoice = invoiceInstance;
 
       log.message('Updating invoice to pending_fund status', invoice, 'Step', guid);
 
       return invoice.update({ status: 'pending_fund', investor_id });
     })
-    .then(invoice => {
-      this.invoice = invoice;
-
-      return invoiceProducer.invoiceUpdated(invoice.summary(), guid);
-    })
+    .then(() => invoiceProducer.invoiceUpdated(invoice.summary(), guid))
     .then(() => {
-      log.message('Fund invoice', this.invoice, 'Response', guid);
+      log.message('Fund invoice', invoice, 'Response', guid);
 
-      return callback(null, this.invoice.summary());
+      return callback(null, invoice.summary());
     })
     .catch(e => {
       log.error(e, request.guid);

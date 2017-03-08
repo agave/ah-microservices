@@ -7,11 +7,21 @@ const invoice = {
   created_at: new Date(),
   updated_at: new Date()
 };
+const summary = {
+  id: invoice.id,
+  provider_id: invoice.provider_id,
+  amount: invoice.amount,
+  status: invoice.status,
+  created_at: invoice.created_at.toString(),
+  updated_at: invoice.updated_at.toString()
+};
+const investorId = 2;
 
 module.exports = {
   create: {
     request: {
       request: {
+        guid: String(Math.random()),
         provider_id: invoice.provider_id,
         amount: invoice.amount
       }
@@ -22,21 +32,16 @@ module.exports = {
       status: 'new'
     },
     invoiceInstance: {
-      dataValues: invoice
+      dataValues: invoice,
+      summary: () => summary
     },
-    response: {
-      id: invoice.id,
-      provider_id: invoice.provider_id,
-      amount: invoice.amount,
-      status: invoice.status,
-      created_at: invoice.created_at.toString(),
-      updated_at: invoice.updated_at.toString()
-    }
+    response: summary
   },
   get: {
     request: {
       request: {
-        id: invoice.id
+        id: invoice.id,
+        guid: String(Math.random())
       }
     },
     findOneData: {
@@ -44,20 +49,25 @@ module.exports = {
         id: invoice.id
       }
     },
-    response: {
-      id: invoice.id,
-      provider_id: invoice.provider_id,
-      amount: invoice.amount,
-      status: invoice.status,
-      created_at: invoice.created_at.toString(),
-      updated_at: invoice.updated_at.toString()
-    }
+    invoiceInstance: {
+      dataValues: invoice,
+      summary: () => summary
+    },
+    response: summary
   },
   fund: {
     request: {
       request: {
         id: invoice.id,
-        investor_id: 1
+        investor_id: investorId,
+        guid: String(Math.random())
+      }
+    },
+    ownInvoiceFundRequest: {
+      request: {
+        id: invoice.id,
+        investor_id: invoice.provider_id,
+        guid: String(Math.random())
       }
     },
     findOneData: {
@@ -68,30 +78,21 @@ module.exports = {
     },
     updateData: {
       status: 'pending_fund',
-      investor_id: 1
+      investor_id: investorId
     },
     invoiceInstance: {
       update: () => {
         console.log('Updating invoice');
       },
-      dataValues: {
-        id: 1,
-        provider_id: 1,
-        investor_id: 1,
-        amount: 1000,
-        status: 'new',
-        created_at: new Date(),
-        updated_at: new Date()
-      }
-    },
-    response: {
-      id: invoice.id,
+      summary: () => summary,
+      id: 1,
       provider_id: invoice.provider_id,
-      investor_id: 1,
+      investor_id: investorId,
       amount: invoice.amount,
-      status: 'new',
-      created_at: invoice.created_at.toString(),
-      updated_at: invoice.updated_at.toString()
-    }
+      status: invoice.status,
+      created_at: invoice.created_at,
+      updated_at: invoice.updated_at
+    },
+    response: summary
   }
 };
