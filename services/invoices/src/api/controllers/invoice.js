@@ -5,14 +5,22 @@ const invoiceProducer = require('../producers/invoice');
 
 class InvoiceController {
   create({ request }, callback) {
-    const { provider_id, amount } = request;
+    const { provider_id, amount, guid } = request;
     const data = { provider_id, amount, status: 'new' };
+    let invoice;
 
-    log.message('Create invoice', request, 'Request', request.guid);
+    log.message('Create invoice', request, 'Request', guid);
 
-    return Invoice.create(data)
-    .then(invoice => {
-      log.message('Create invoice', invoice, 'Response', request.guid);
+    return invoiceProducer
+    .ensureConnection()
+    .then(() => Invoice.create(data))
+    .then(createdInvoice => {
+      invoice = createdInvoice;
+
+      return invoiceProducer.invoiceCreated(invoice.summary(), guid);
+    })
+    .then(() => {
+      log.message('Create invoice', invoice, 'Response', guid);
 
       return callback(null, invoice.summary());
     })
@@ -60,7 +68,9 @@ class InvoiceController {
     const { investor_id, guid } = request;
     let invoice;
 
-    return Invoice.findOne(query)
+    return invoiceProducer
+    .ensureConnection()
+    .then(() => Invoice.findOne(query))
     .then(invoiceInstance => {
       if (!invoiceInstance) {
         throw new Error('Invoice not found');

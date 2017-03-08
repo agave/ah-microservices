@@ -11,6 +11,7 @@ const invoiceFixtures = require('../../fixtures/invoice');
 const errorSchema = require('../../../common/schemas/error');
 const invoiceSchema = require('../../../common/schemas/invoice');
 const invoiceUpdatedSchema = require('../../../common/schemas/events/invoice-updated');
+const invoiceCreatedSchema = require('../../../common/schemas/events/invoice-created');
 
 chai.should();
 chai.use(chaiAsPromised);
@@ -33,7 +34,9 @@ describe('functional/Invoice controller', () => {
     it('should return an invoice successfully', () => {
       return Gateway.createInvoice(invoiceFixtures.validInvoice())
       .should.be.fulfilled
-      .then(validate(invoiceSchema));
+      .then(validate(invoiceSchema))
+      .then(() => helper.getNextEvent())
+      .then(validate(invoiceCreatedSchema));
     });
   });
 
@@ -55,7 +58,7 @@ describe('functional/Invoice controller', () => {
   describe('fund', () => {
 
     it('should return error if invoice doesn\'t exist', () => {
-      return Gateway.fundInvoice({ id: -1 })
+      return Gateway.fundInvoice(invoiceFixtures.invalidInvoice())
       .should.be.rejected
       .then(validate(errorSchema('Invoice not found')));
     });

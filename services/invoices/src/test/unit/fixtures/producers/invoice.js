@@ -35,5 +35,17 @@ module.exports = {
       },
       key: invoice.id
     }
+  },
+  invoiceCreated: {
+    invoice,
+    guid,
+    event: {
+      message: {
+        type: 'InvoiceCreated',
+        guid,
+        body: invoice
+      },
+      key: invoice.id
+    }
   }
 };

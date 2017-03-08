@@ -53,6 +53,10 @@ class KafkaProducer {
     });
   }
 
+  isConnected() {
+    return this.producer.isConnected();
+  }
+
   disconnect() {
     this.producer.disconnect();
   }

@@ -15,6 +15,7 @@ All events have the following structure:
 
 | Topic | Type | Body |
 | --- | --- | --- |
+| invoice | InvoiceCreated | ```{ id: int, provider_id: int, amount: double, status: string, created_at: string, updated_at: string }``` |
 | invoice | InvoiceUpdated | ```{ id: int, provider_id: int, investor_id: int, amount: double, status: string, created_at: string, updated_at: string }``` |
 | invoice | ReservationNotFound | ```{ invoice_id: int, user_id: int }``` |
 | user | BalanceReserved | ```{ invoice_id: int, user_id: int }``` |

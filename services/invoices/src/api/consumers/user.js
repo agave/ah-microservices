@@ -22,7 +22,9 @@ class UserConsumer extends BaseConsumer {
 
     log.message('Consuming user event', event, 'Event', guid);
 
-    return Invoice.findOne(query)
+    return invoiceProducer
+    .ensureConnection()
+    .then(() => Invoice.findOne(query))
     .then(invoiceInstance => {
       if (!invoiceInstance) {
         return invoiceProducer.reservationNotFound(body.invoice_id, body.user_id, guid);
@@ -56,7 +58,9 @@ class UserConsumer extends BaseConsumer {
 
     log.message('Consuming user event', event, 'Event', guid);
 
-    return Invoice.findOne(query)
+    return invoiceProducer
+    .ensureConnection()
+    .then(() => Invoice.findOne(query))
     .then(invoiceInstance => {
       if (!invoiceInstance) {
         return invoiceProducer.reservationNotFound(body.invoice_id, body.user_id, guid);
@@ -90,7 +94,9 @@ class UserConsumer extends BaseConsumer {
 
     log.message('Consuming user event', event, 'Event', guid);
 
-    return Invoice.findOne(query)
+    return invoiceProducer
+    .ensureConnection()
+    .then(() => Invoice.findOne(query))
     .then(invoiceInstance => {
       if (!invoiceInstance) {
         return invoiceProducer.reservationNotFound(body.invoice_id, body.user_id, guid);

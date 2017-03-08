@@ -1,8 +1,8 @@
+const BaseProducer = require('./base-producer');
 const Logger = require('/var/lib/core/js/log');
 const log = new Logger(module);
-const kafkaProducer = require('../vendor/kafka-producer');
 
-class InvoiceProducer {
+class InvoiceProducer extends BaseProducer {
   reservationNotFound(invoiceId, userId, guid) {
     const event = {
       message: {
@@ -18,7 +18,7 @@ class InvoiceProducer {
 
     log.message('Producing invoice event', event, 'Event', guid);
 
-    return kafkaProducer.produce(event);
+    return this.produce(event);
   }
 
   invoiceUpdated(invoice, guid) {
@@ -33,7 +33,22 @@ class InvoiceProducer {
 
     log.message('Producing invoice event', event, 'Event', guid);
 
-    return kafkaProducer.produce(event);
+    return this.produce(event);
+  }
+
+  invoiceCreated(invoice, guid) {
+    const event = {
+      message: {
+        type: 'InvoiceCreated',
+        guid,
+        body: invoice
+      },
+      key: invoice.id
+    };
+
+    log.message('Producing invoice event', event, 'Event', guid);
+
+    return this.produce(event);
   }
 }
 

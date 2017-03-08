@@ -74,4 +74,34 @@ describe('unit/Invoice producer', () => {
       });
     });
   });
+
+  describe('invoiceCreated', () => {
+
+    const fixtures = helperFixtures.invoiceCreated;
+    const { invoice, guid, event } = fixtures;
+
+    it('should reject if kafkaProducer.produce fails', () => {
+      const produceError = new Error('produce error');
+
+      sandbox.stub(kafkaProducer, 'produce', () => Promise.reject(produceError));
+
+      return producer.invoiceCreated(invoice, guid)
+      .should.be.rejected
+      .then(err => {
+        kafkaProducer.produce.calledOnce.should.be.true;
+        err.should.be.equal(produceError);
+      });
+    });
+
+    it('should produce event correctly', () => {
+      sandbox.stub(kafkaProducer, 'produce', () => Promise.resolve());
+
+      return producer.invoiceCreated(invoice, guid)
+      .should.be.fulfilled
+      .then(() => {
+        kafkaProducer.produce.calledOnce.should.be.true;
+        kafkaProducer.produce.calledWithMatch(event).should.be.true;
+      });
+    });
+  });
 });

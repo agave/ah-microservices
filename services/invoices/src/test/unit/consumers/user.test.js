@@ -25,8 +25,27 @@ describe('unit/User consumer', () => {
     beforeEach(() => {
       sandbox.stub(Invoice, 'findOne', () => Promise.resolve(invoiceInstance));
       sandbox.stub(invoiceInstance, 'update', () => Promise.resolve(invoiceInstance));
+      sandbox.stub(invoiceProducer, 'ensureConnection', () => Promise.resolve());
       sandbox.stub(invoiceProducer, 'reservationNotFound', () => Promise.resolve());
       sandbox.stub(invoiceProducer, 'invoiceUpdated', () => Promise.resolve());
+    });
+
+    it('should reject if producer is not connected', () => {
+      const connectionError = new Error('connection error');
+
+      invoiceProducer.ensureConnection.restore();
+      sandbox.stub(invoiceProducer, 'ensureConnection', () => Promise.reject(connectionError));
+
+      return consumer.balanceReserved(event)
+      .should.be.rejected
+      .then(err => {
+        invoiceProducer.ensureConnection.calledOnce.should.be.true;
+        Invoice.findOne.called.should.be.false;
+        invoiceProducer.reservationNotFound.called.should.be.false;
+        invoiceInstance.update.called.should.be.false;
+        invoiceProducer.invoiceUpdated.called.should.be.false;
+        err.should.be.equal(connectionError);
+      });
     });
 
     it('should reject if Invoice.findOne fails', () => {
@@ -139,8 +158,27 @@ describe('unit/User consumer', () => {
     beforeEach(() => {
       sandbox.stub(Invoice, 'findOne', () => Promise.resolve(invoiceInstance));
       sandbox.stub(invoiceInstance, 'update', () => Promise.resolve(invoiceInstance));
+      sandbox.stub(invoiceProducer, 'ensureConnection', () => Promise.resolve());
       sandbox.stub(invoiceProducer, 'reservationNotFound', () => Promise.resolve());
       sandbox.stub(invoiceProducer, 'invoiceUpdated', () => Promise.resolve());
+    });
+
+    it('should reject if producer is not connected', () => {
+      const connectionError = new Error('connection error');
+
+      invoiceProducer.ensureConnection.restore();
+      sandbox.stub(invoiceProducer, 'ensureConnection', () => Promise.reject(connectionError));
+
+      return consumer.balanceReserved(event)
+      .should.be.rejected
+      .then(err => {
+        invoiceProducer.ensureConnection.calledOnce.should.be.true;
+        Invoice.findOne.called.should.be.false;
+        invoiceProducer.reservationNotFound.called.should.be.false;
+        invoiceInstance.update.called.should.be.false;
+        invoiceProducer.invoiceUpdated.called.should.be.false;
+        err.should.be.equal(connectionError);
+      });
     });
 
     it('should reject if Invoice.findOne fails', () => {
@@ -253,8 +291,27 @@ describe('unit/User consumer', () => {
     beforeEach(() => {
       sandbox.stub(Invoice, 'findOne', () => Promise.resolve(invoiceInstance));
       sandbox.stub(invoiceInstance, 'update', () => Promise.resolve(invoiceInstance));
+      sandbox.stub(invoiceProducer, 'ensureConnection', () => Promise.resolve());
       sandbox.stub(invoiceProducer, 'reservationNotFound', () => Promise.resolve());
       sandbox.stub(invoiceProducer, 'invoiceUpdated', () => Promise.resolve());
+    });
+
+    it('should reject if producer is not connected', () => {
+      const connectionError = new Error('connection error');
+
+      invoiceProducer.ensureConnection.restore();
+      sandbox.stub(invoiceProducer, 'ensureConnection', () => Promise.reject(connectionError));
+
+      return consumer.balanceReserved(event)
+      .should.be.rejected
+      .then(err => {
+        invoiceProducer.ensureConnection.calledOnce.should.be.true;
+        Invoice.findOne.called.should.be.false;
+        invoiceProducer.reservationNotFound.called.should.be.false;
+        invoiceInstance.update.called.should.be.false;
+        invoiceProducer.invoiceUpdated.called.should.be.false;
+        err.should.be.equal(connectionError);
+      });
     });
 
     it('should reject if Invoice.findOne fails', () => {
