@@ -3,29 +3,10 @@ const log = new Logger(module);
 const kafkaProducer = require('../vendor/kafka-producer');
 
 class InvoiceProducer {
-  invoiceReserved(invoiceId, amount, userId, guid) {
-    const event = {
-      message: {
-        type: 'InvoiceReserved',
-        guid,
-        body: {
-          invoice_id: invoiceId,
-          user_id: userId,
-          amount
-        }
-      },
-      key: invoiceId
-    };
-
-    log.message('Producing invoice event', event, 'Event', guid);
-
-    return kafkaProducer.produce(event);
-  }
-
   reservationNotFound(invoiceId, userId, guid) {
     const event = {
       message: {
-        type: 'reservationNotFound',
+        type: 'ReservationNotFound',
         guid,
         body: {
           invoice_id: invoiceId,
@@ -40,20 +21,19 @@ class InvoiceProducer {
     return kafkaProducer.produce(event);
   }
 
-  invoiceFunded(invoiceId, userId, guid) {
+  invoiceUpdated(invoice, guid) {
     const event = {
       message: {
-        type: 'InvoiceFunded',
+        type: 'InvoiceUpdated',
         guid,
-        body: {
-          invoice_id: invoiceId,
-          user_id: userId
-        }
+        body: invoice
       },
-      key: invoiceId
+      key: invoice.id
     };
 
     log.message('Producing invoice event', event, 'Event', guid);
+
+    return kafkaProducer.produce(event);
   }
 }
 

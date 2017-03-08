@@ -18,22 +18,23 @@ class UserConsumer extends BaseConsumer {
         status: 'pending_fund'
       }
     };
+    let invoice;
 
     log.message('Consuming user event', event, 'Event', guid);
 
     return Invoice.findOne(query)
-    .then(invoice => {
-      if (!invoice) {
+    .then(invoiceInstance => {
+      if (!invoiceInstance) {
         return invoiceProducer.reservationNotFound(body.invoice_id, body.user_id, guid);
       }
+      invoice = invoiceInstance;
 
       return invoice.update({ status: 'funded' });
     })
-    .then(updatedInvoice => {
-      if (updatedInvoice) {
-        return invoiceProducer.invoiceFunded(updatedInvoice.id, body.user_id, guid);
+    .then(() => {
+      if (invoice) {
+        return invoiceProducer.invoiceUpdated(invoice.summary(), guid);
       }
-
       return true;
     })
     .catch(err => {
@@ -51,16 +52,24 @@ class UserConsumer extends BaseConsumer {
         status: 'pending_fund'
       }
     };
+    let invoice;
 
     log.message('Consuming user event', event, 'Event', guid);
 
     return Invoice.findOne(query)
-    .then(invoice => {
-      if (!invoice) {
+    .then(invoiceInstance => {
+      if (!invoiceInstance) {
         return invoiceProducer.reservationNotFound(body.invoice_id, body.user_id, guid);
       }
+      invoice = invoiceInstance;
 
       return invoice.update({ status: 'new' });
+    })
+    .then(() => {
+      if (invoice) {
+        return invoiceProducer.invoiceUpdated(invoice.summary(), guid);
+      }
+      return true;
     })
     .catch(err => {
       log.error(err, guid);
@@ -68,7 +77,7 @@ class UserConsumer extends BaseConsumer {
     });
   }
 
-  userNotFound(event) {
+  funderNotFound(event) {
     const { value } = event;
     const { body, guid } = value;
     const query = {
@@ -77,16 +86,24 @@ class UserConsumer extends BaseConsumer {
         status: 'pending_fund'
       }
     };
+    let invoice;
 
     log.message('Consuming user event', event, 'Event', guid);
 
     return Invoice.findOne(query)
-    .then(invoice => {
-      if (!invoice) {
+    .then(invoiceInstance => {
+      if (!invoiceInstance) {
         return invoiceProducer.reservationNotFound(body.invoice_id, body.user_id, guid);
       }
+      invoice = invoiceInstance;
 
       return invoice.update({ status: 'new' });
+    })
+    .then(() => {
+      if (invoice) {
+        return invoiceProducer.invoiceUpdated(invoice.summary(), guid);
+      }
+      return true;
     })
     .catch(err => {
       log.error(err, guid);

@@ -20,14 +20,14 @@ fs
 function handle(event) {
   const handler = handlers[event.topic];
 
-  if (event.topic === 'invoice') {
-    return Promise.resolve();
-  }
+  // Camelize event type which should match a handler's function
+  event.value.type = event.value.type.substr(0, 1).toLowerCase() + event.value.type.substr(1);
+
   if (handler) {
     return handler.handle(event);
   }
 
-  return Promise.reject(`No handler found for topic ${event.topic}`);
+  return Promise.reject(new Error(`No handler found for topic ${event.topic}`));
 }
 
 module.exports.handle = handle;
