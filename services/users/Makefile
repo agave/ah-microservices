@@ -14,7 +14,7 @@ lint: fmt vet deps
 	gometalinter.v1 --install
 	gometalinter.v1 ./... \
 		--vendor --disable=gotype \
-		--deadline=1000s --exclude="pb.*" --debug
+		--deadline=1000s --exclude="pb.*" --fast
 	rm -rf $(GOPATH)/src/gopkg.in/alecthomas/gometalinter.v1
 	rm -rf $(GOPATH)/bin/gometalinter.v1
 vet:
