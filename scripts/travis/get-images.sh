@@ -18,15 +18,31 @@ IS_INCLUDED="y"
 
 # If core is changed all services must be rebuilt
 if [ "$(utils::contains "core" "${modified_services[@]}")" == "$IS_INCLUDED" ]; then
-  echo "Skipping pull images step since core was modified"
+  for service in "${all_services[@]}";
+  do
+    [ "$service" == "core" ] && continue
+    echo "Building $service"
+    if ! make build service="$service"
+    then
+      exit 1
+    fi
+  done
 else
   for service in "${all_services[@]}";
   do
-    ([ "$service" == "core" ] || [ "$(utils::contains "$service" "${modified_services[@]}")" == "y" ]) && continue
-    echo "Pulling $service"
-    if ! docker pull agavelab/backendbase-"$service"
-    then
-      exit 1
+    [ "$service" == "core" ] && continue
+    if [ "$(utils::contains "$service" "${modified_services[@]}")" == "$IS_INCLUDED" ]; then
+      echo "Building $service"
+      if ! make build service="$service"
+      then
+        exit 1
+      fi
+    else
+      echo "Pulling $service"
+      if ! docker pull agavelab/ah-microservices-"$service"
+      then
+        exit 1
+      fi
     fi
   done
 fi

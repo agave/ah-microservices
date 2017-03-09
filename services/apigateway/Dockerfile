@@ -6,7 +6,7 @@ COPY ./apigateway/scripts /home/docker/
 
 WORKDIR /var/lib/app
 
-RUN chmod +x /home/docker/*.sh && yarn install >/dev/null 2>&1
+RUN chmod +x /home/docker/*.sh && yarn install
 
 EXPOSE 80
 

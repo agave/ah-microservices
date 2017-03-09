@@ -24,10 +24,10 @@ all_services=( ${all_services[@]} )
 source "$(dirname "$0")/utils.sh"
 
 push-image () {
-  docker tag agavelab/backendbase-"$1" agavelab/backendbase-"$1":"${TRAVIS_BUILD_ID}"
-  docker tag agavelab/backendbase-"$1" agavelab/backendbase-"$1":latest
-  docker push agavelab/backendbase-"$1":"${TRAVIS_BUILD_ID}"
-  docker push agavelab/backendbase-"$1":latest
+  docker tag agavelab/ah-microservices-"$1" agavelab/ah-microservices-"$1":"${TRAVIS_BUILD_ID}"
+  docker tag agavelab/ah-microservices-"$1" agavelab/ah-microservices-"$1":latest
+  docker push agavelab/ah-microservices-"$1":"${TRAVIS_BUILD_ID}"
+  docker push agavelab/ah-microservices-"$1":latest
 }
 
 IS_INCLUDED="y"
