@@ -55,8 +55,6 @@ func (s *userServer) CreateUser(ctx xContext.Context, c *userGen.Create) (*userG
 	}
 
 	user := user.Users{Email: c.GetEmail()}
-
-	log.WithField("userEmail", user.Email).Info("Looking for user in db")
 	exists, err := db.Engine.Get(&user)
 	if err != nil {
 		return &userGen.Profile{},
