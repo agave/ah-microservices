@@ -1,0 +1,16 @@
+version: '2'
+
+services:
+  e2e-tests:
+    build:
+      context: ./
+      dockerfile: ./e2e-tests/Dockerfile
+    image: agavelab/backendbase-e2e
+    links:
+      - grpc-gateway
+  apigateway:
+    entrypoint: /home/docker/startup.integration.sh
+  grpc-gateway:
+    entrypoint: /home/docker/startup.integration.sh
+  invoices:
+    entrypoint: /home/docker/startup.integration.sh
