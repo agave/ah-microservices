@@ -8,6 +8,7 @@ import (
 	"github.com/agave/ah-microservices/services/users/db"
 	"github.com/agave/ah-microservices/services/users/user"
 	userGen "github.com/agave/ah-microservices/services/users/user/generated"
+	"github.com/agave/ah-microservices/services/users/util"
 	xContext "golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -81,12 +82,12 @@ func (s *userServer) CreateUser(ctx xContext.Context, c *userGen.Create) (*userG
 
 // StartServer configures and starts our Users grpc server
 func StartServer() {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":80"))
+	// TODO: somehow test this
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", util.Config.Port))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		log.WithField("error", err).Fatalln("Failed to start GRPC Server")
 	}
 	grpcServer := grpc.NewServer()
 	userGen.RegisterUserServer(grpcServer, &userServer{})
-	// determine whether to use TLS
 	grpcServer.Serve(lis)
 }

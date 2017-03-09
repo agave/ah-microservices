@@ -5,6 +5,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/agave/ah-microservices/services/users/db"
+	"github.com/agave/ah-microservices/services/users/server"
 	"github.com/agave/ah-microservices/services/users/util"
 	config "github.com/gypsydiver/go-config"
 )
@@ -39,8 +40,7 @@ func dbClientInit() {
 }
 
 func main() {
-	log.Info("Awesome sauce")
 	// events.LaunchConsumer()
 	// events.LaunchProducer()
-	// server.StartServer()
+	server.StartServer()
 }
