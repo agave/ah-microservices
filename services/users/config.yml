@@ -3,3 +3,12 @@ KafkaBrokers:
 KafkaTopics:
   - "users"
 ConsumerGroupID: "consumer-users"
+DB:
+  DBHost: "db"
+  DBPort: 5432
+  DBName: "users"
+  DBUser: "postgres"
+  DBPassword: "postgres"
+  DBOptions:
+    - "sslmode=disable"
+Port: 80

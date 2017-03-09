@@ -7,3 +7,6 @@ import:
 - package: github.com/gypsydiver/go-config
 - package: github.com/bsm/sarama-cluster
   version: ~2.1.5
+- package: github.com/lib/pq
+- package: github.com/go-xorm/core
+  version: ~0.5.6
