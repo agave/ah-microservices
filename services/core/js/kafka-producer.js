@@ -15,9 +15,8 @@ class KafkaProducer {
 
   connect() {
     this.producer.connect();
-    this.producer.on('ready', result => {
+    this.producer.on('ready', () => {
       this.ready = true;
-      this.topic = this.producer.Topic(this.topicName, { 'request.required.acks': 1 });
     });
 
     return new Promise((resolve, reject) => {

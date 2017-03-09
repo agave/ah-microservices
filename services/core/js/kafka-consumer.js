@@ -15,7 +15,7 @@ class KafkaConsumer {
 
   connect(onMessageReceived) {
     this.consumer
-    .on('ready', result => {
+    .on('ready', () => {
       this.ready = true;
       this.consumer.subscribe(this.config.topics);
       this.consumer.consume();
