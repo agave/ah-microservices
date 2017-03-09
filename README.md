@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/agave/ah-microservices.svg?branch=master)](https://travis-ci.org/agave/ah-microservices) [![codecov](https://codecov.io/gh/agave/ah-microservices/branch/master/graph/badge.svg)](https://codecov.io/gh/agave/ah-microservices)
 # Agave Lab After Hours microservices demo
 
 [Docs](/docs/README.md)
