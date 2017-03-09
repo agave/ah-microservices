@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"net"
 
@@ -11,6 +10,7 @@ import (
 	userGen "github.com/agave/ah-microservices/services/users/user/generated"
 	xContext "golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 )
 
 // UserServer implements user service functionality through grpc
@@ -25,23 +25,34 @@ func (s *userServer) GetUser(ctx xContext.Context, id *userGen.Id) (*userGen.Pro
 func (s *userServer) CreateUser(ctx xContext.Context, c *userGen.Create) (*userGen.Profile, error) {
 	//TODO: email/security validation
 	if c.Balance < 0 {
-		// log
-		return nil, errors.New("Balance must be greater or equal than/to zero")
+		return &userGen.Profile{},
+			grpc.Errorf(codes.InvalidArgument, "Balance can't be negative")
 	}
 
-	user := user.Users{
-		Email:   c.GetEmail(),
-		Balance: c.GetBalance(),
+	user := user.Users{Email: c.GetEmail()}
+
+	exists, err := db.Engine.Get(&user)
+	if err != nil {
+		return &userGen.Profile{},
+			grpc.Errorf(codes.Internal, "%s", err.Error())
 	}
+
+	if exists {
+		return &userGen.Profile{},
+			grpc.Errorf(codes.AlreadyExists, "User already exists")
+	}
+
+	user.Balance = c.GetBalance()
 
 	// create user in db
-	aff, err := db.Engine.Insert(&user)
-	if err == nil && 1 == aff {
-		n := userGen.Profile(user)
-		return &n, nil
+	affectedRows, err := db.Engine.InsertOne(&user)
+	if err == nil && affectedRows == 1 {
+		p := userGen.Profile(user)
+		return &p, nil
 	}
 
-	return &userGen.Profile{}, err
+	return &userGen.Profile{},
+		grpc.Errorf(codes.Unknown, "Unable to create user")
 }
 
 // StartServer configures and starts our Users grpc server
