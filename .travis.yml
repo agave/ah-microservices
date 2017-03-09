@@ -1,0 +1,34 @@
+language: node_js
+
+node_js:
+  - "6"
+
+addons:
+  apt:
+    sources:
+    - debian-sid # Grab ShellCheck from the Debian repo
+    packages:
+    - shellcheck
+
+services:
+  - docker
+
+install:
+  - npm i -g eslint
+  - curl -#L https://get.torus.sh/${TORUS_VER}/torus_${TORUS_VER}_linux_amd64.zip >> torus.zip
+  - unzip -q torus.zip
+  - rm torus.zip
+  - mv torus scripts/
+
+before_script:
+  - chmod +x ./scripts/lint-check.sh
+  - chmod +x ./scripts/travis/*.sh
+  - chmod +x ./scripts/coverage_report/*.sh
+  - ./scripts/torus run -e travis -s travis -- ./scripts/travis/docker-login.sh
+  - ./scripts/travis/pull-images.sh
+
+script:
+  - ./scripts/torus run -e travis -s travis -- ./scripts/travis/main.sh
+
+after_success:
+  - ./scripts/torus run -e travis -s travis -- ./scripts/coverage_report/generate_coverage_reports.sh
