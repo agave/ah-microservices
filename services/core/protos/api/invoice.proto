@@ -5,8 +5,8 @@ option go_package = "github.com/agave/ah-microservices/services/grpc-gateway/src
 
 import "google/api/annotations.proto";
 
-service InvoiceApi {
-  rpc Get(Id) returns (InvoiceInfo) {
+service Invoice {
+  rpc Get(InvoiceId) returns (InvoiceInfo) {
     option (google.api.http) = {
       get: "/api/v1/invoice/{id}"
     };

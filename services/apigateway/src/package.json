@@ -1,0 +1,22 @@
+{
+  "name": "apigateway",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Api gateway",
+  "keywords": [],
+  "author": "",
+  "license": "",
+  "main": "app.js",
+  "dependencies": {
+    "grpc": "^1.0.1",
+    "winston": "^2.3.1"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-as-promised": "^6.0.0",
+    "is-my-json-valid": "^2.15.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.2.0",
+    "sinon": "^1.17.7"
+  }
+}

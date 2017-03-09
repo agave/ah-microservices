@@ -46,6 +46,7 @@ class Gateway {
 
   getInvoice(req) {
     const data = {
+      guid: req.guid,
       id: req.id
     };
 

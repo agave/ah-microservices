@@ -30,6 +30,17 @@ services:
       POSTGRES_PASSWORD: postgres
     labels:
       container_group: service
+  apigateway:
+    build:
+      context: ./services
+      dockerfile: ./apigateway/Dockerfile
+    image: agavelab/ah-microservices-apigateway
+    links:
+      - invoices
+    environment:
+      PORT: 80
+    labels:
+      container_group: service
   invoices:
     build:
       context: ./services
