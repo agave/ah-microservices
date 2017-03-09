@@ -7,6 +7,8 @@ if [ "$OS" == "Darwin" ]; then
   interface="en0"
 fi
 
+echo "DOCKER_HOST_IP"
+echo "$(ifconfig $interface | grep "inet " | cut -d ' ' -f 2)"
 # shellcheck disable=SC2005
 # shellcheck disable=SC2155
 export DOCKER_HOST_IP="$(ifconfig $interface | grep "inet " | cut -d ' ' -f 2)"
