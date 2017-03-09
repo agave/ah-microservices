@@ -3,4 +3,6 @@ version: '2'
 services:
   users:
     entrypoint:
-      - bash # TODO: Make this work
+      - /home/docker/startup.dev.sh
+    volumes:
+      - ./services/users:/go/src/github.com/agave/ah-microservices/services/users
