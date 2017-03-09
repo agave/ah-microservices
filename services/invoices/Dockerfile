@@ -6,6 +6,10 @@ COPY ./invoices/scripts /home/docker/
 
 WORKDIR /var/lib/app
 
+ENV CFLAGS ""
+ENV CPPFLAGS ""
+ENV LDFLAGS ""
+
 RUN chmod +x /home/docker/*.sh && yarn install
 
 EXPOSE 80
