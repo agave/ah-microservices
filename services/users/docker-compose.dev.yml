@@ -3,5 +3,4 @@ version: '2'
 services:
   users:
     entrypoint:
-      - /home/docker/startup.dev.sh
-      - bash
+      - bash # TODO: Make this work

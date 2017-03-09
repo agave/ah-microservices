@@ -21,6 +21,7 @@ message Profile {
 }
 
 message Create {
-	string email = 1;
-	double balance = 2;
+	string guid = 1;
+	string email = 2;
+	double balance = 3;
 }
