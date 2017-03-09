@@ -3,4 +3,3 @@
 set -e
 
 make unit-test
-make functional-test
