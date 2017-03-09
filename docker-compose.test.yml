@@ -1,5 +1,7 @@
 version: '2'
 
 services:
+  apigateway:
+    entrypoint: /home/docker/startup.integration.sh
   invoices:
     entrypoint: /home/docker/startup.integration.sh

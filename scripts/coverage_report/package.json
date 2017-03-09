@@ -1,0 +1,14 @@
+{
+  "name": "coverage_reports_merger",
+  "version": "1.0.0",
+  "description": "Utility project for merging services code coverage reports",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=4.5.0"
+  },
+  "dependencies": {
+
+  }
+}

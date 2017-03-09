@@ -34,8 +34,33 @@ class Gateway {
     });
   }
 
-  getInvoice(data) {
+  createInvoice(req) {
+    const data = {
+      guid: req.guid,
+      provider_id: req.provider_id,
+      amount: req.amount
+    };
+
+    return this.request(this.invoice, 'create', data);
+  }
+
+  getInvoice(req) {
+    const data = {
+      guid: req.guid,
+      id: req.id
+    };
+
     return this.request(this.invoice, 'get', data);
+  }
+
+  fundInvoice(req) {
+    const data = {
+      guid: req.guid,
+      id: req.id,
+      investor_id: req.investor_id
+    };
+
+    return this.request(this.invoice, 'fund', data);
   }
 }
 

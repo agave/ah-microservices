@@ -4,7 +4,7 @@ BASE_COMPOSE=-f $(CURRENT_DIRECTORY)/docker-compose.yml
 DEV_COMPOSE=$(BASE_COMPOSE) -f $(CURRENT_DIRECTORY)/docker-compose.dev.yml
 TEST_COMPOSE=$(BASE_COMPOSE) -f $(CURRENT_DIRECTORY)/docker-compose.test.yml
 E2E_COMPOSE=$(BASE_COMPOSE) -f $(CURRENT_DIRECTORY)/e2e-tests/docker-compose.yml
-DEV_E2E_COMPOSE=$(E2E_COMPOSE) -f $(CURRENT_DIRECTORY)/e2e-tests/docker-compose.dev.yml
+DEV_E2E_COMPOSE=$(DEV_COMPOSE) -f $(CURRENT_DIRECTORY)/e2e-tests/docker-compose.dev.yml
 
 # Build services or build single service with service=name
 build:
@@ -16,7 +16,6 @@ bash:
 
 # Test current build of a service
 test:
-	@docker-compose $(TEST_COMPOSE) -f $(CURRENT_DIRECTORY)/services/$(service)/docker-compose.test.yml build $(service) > /dev/null
 	@docker-compose $(TEST_COMPOSE) -f $(CURRENT_DIRECTORY)/services/$(service)/docker-compose.test.yml run $(service)
 	@docker-compose $(TEST_COMPOSE) down
 

@@ -13,8 +13,9 @@ services:
     ports:
       - "9092:9092"
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: kafka
-      KAFKA_CREATE_TOPICS: "invoices:1:1"
+      KAFKA_ADVERTISED_HOST_NAME: "${DOCKER_HOST_IP}"
+      KAFKA_ADVERTISED_PORT: 9092
+      KAFKA_CREATE_TOPICS: "invoice:1:1, user:1:1"
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -29,17 +30,28 @@ services:
       POSTGRES_PASSWORD: postgres
     labels:
       container_group: service
+  apigateway:
+    build:
+      context: ./services
+      dockerfile: ./apigateway/Dockerfile
+    image: agavelab/ah-microservices-apigateway
+    links:
+      - invoices
+    environment:
+      PORT: 80
+    labels:
+      container_group: service
   invoices:
     build:
       context: ./services
       dockerfile: ./invoices/Dockerfile
-    image: agavelab/ah-microservices-users
+    image: agavelab/ah-microservices-invoices
     links:
       - kafka
       - db
     environment:
       PORT: 80
-      KAFKA_HOST: kafka
+      KAFKA_HOST: "${DOCKER_HOST_IP}"
       KAFKA_PORT: 9092
       DB_HOST: db
       DB_USER: postgres

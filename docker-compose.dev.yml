@@ -6,6 +6,14 @@ services:
       - ./pgdata:/var/lib/postgresql/data/pgdata
     environment:
       PGDATA: /var/lib/postgresql/data/pgdata
+  apigateway:
+    volumes:
+      - ./services/apigateway/src:/var/lib/app
+      - ./services/apigateway/scripts:/home/docker
+      - ./services/core:/var/lib/core
+      # prevent mounting node_modules to avoid cross-platform incompatibilities
+      - /var/lib/app/node_modules
+    entrypoint: /home/docker/startup.integration.sh
   invoices:
     volumes:
       - ./services/invoices/src:/var/lib/app
@@ -13,8 +21,4 @@ services:
       - ./services/core:/var/lib/core
       # prevent mounting node_modules to avoid cross-platform incompatibilities
       - /var/lib/app/node_modules
-    ports:
-      - "8080:80"
-    environment:
-      NODE_ENV: development
     entrypoint: /home/docker/startup.integration.sh

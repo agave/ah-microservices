@@ -1,0 +1,17 @@
+version: '2'
+
+services:
+  e2e-tests:
+    build:
+      context: ./
+      dockerfile: ./e2e-tests/Dockerfile
+    image: agavelab/backendbase-e2e
+    volumes:
+      - ./e2e-tests/src:/var/lib/app
+      - ./e2e-tests/scripts:/home/docker
+      - ./services/core:/var/lib/core
+      # prevent mounting node_modules to avoid cross-platform incompatibilities
+      - /var/lib/app/node_modules
+    links:
+      - grpc-gateway
+    entrypoint: /home/docker/startup.dev.sh
