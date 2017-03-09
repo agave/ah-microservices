@@ -56,14 +56,42 @@ func (s *ServerFunctionalSuite) SetupSuite() {
 	err = db.InitDB("postgres", url)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"error": err,
-			"url":   url,
+			"error": err, "url": url,
 		}).Fatalln("Error starting database")
 	}
 }
 
 func (s *ServerFunctionalSuite) TearDownSuite() {
 	db.Engine.Close()
+}
+
+func (s *ServerFunctionalSuite) TestGetUser() {
+	type testCases struct {
+		Ins  []*userGen.Id
+		Outs []codes.Code
+	}
+
+	tc := testCases{
+		Ins: []*userGen.Id{
+			&userGen.Id{Guid: "1", Id: 1},     // happy
+			&userGen.Id{Guid: "2", Id: 10000}, // not found
+			&userGen.Id{Guid: "3", Id: -99999},
+		},
+		Outs: []codes.Code{
+			codes.OK,
+			codes.NotFound,
+			codes.NotFound,
+		},
+	}
+
+	for i, v := range tc.Ins {
+		p, err := grpcClient.GetUser(context.TODO(), v)
+		s.A.Equal(tc.Outs[i], grpc.Code(err), "GetUser should return expected error")
+		if tc.Outs[i] == codes.OK {
+			s.A.Equal(v.GetId(), p.GetID(), "Should return same id")
+			s.A.NotEmpty(p.GetEmail(), "Email shouldn't be empty")
+		}
+	}
 }
 
 func (s *ServerFunctionalSuite) TestCreateUser() {
@@ -87,14 +115,14 @@ func (s *ServerFunctionalSuite) TestCreateUser() {
 			codes.InvalidArgument,
 			codes.OK,
 			codes.OK,
-			codes.Unknown,
+			codes.InvalidArgument,
 		},
 	}
 
 	for i, c := range tc.Ins {
 		p, err := grpcClient.CreateUser(context.TODO(), c)
+		s.A.Equal(tc.Outs[i], grpc.Code(err), "Create should return expected error")
 		if tc.Outs[i] == codes.OK {
-			s.A.Equal(tc.Outs[i], grpc.Code(err), "Create should return expected error")
 			s.A.NotNil(p)
 			s.A.Equal(c.GetEmail(), p.GetEmail(), "Insert should return same Email")
 			s.A.Equal(c.GetBalance(), p.GetBalance(), "Insert should return same Balance")
