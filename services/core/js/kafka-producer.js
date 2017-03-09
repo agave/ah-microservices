@@ -1,23 +1,28 @@
 const Kafka = require('/var/lib/app/node_modules/node-rdkafka');
+const Logger = require('/var/lib/core/js/log');
+const log = new Logger(module);
 
 class KafkaProducer {
   constructor(config) {
-    this.topicName = config.topic;
-    this.producer = new Kafka.Producer(config);
+    const configClone = {};
+
+    Object.assign(configClone, config);
+
+    this.topicName = configClone.topic;
+    this.producer = new Kafka.Producer(configClone);
 
     this.producer.on('error', err => this.errorHandler(err));
-    this.producer.on('disconnect', () => console.log('Producer disconnected'));
-    this.producer.on('event.log', log => console.log('Producer event', log));
+    this.producer.on('disconnect', () => log.warn('Producer disconnected'));
+    this.producer.on('event.log', e => log.message('Producer event', e, 'ProducerInfo'));
     this.producer.on('delivery-report', report => {
-      console.log('delivery-report: ' + JSON.stringify(report));
+      log.message('Producer delivery-report', report, 'ProducerInfo');
     });
   }
 
   connect() {
     this.producer.connect();
-    this.producer.on('ready', result => {
+    this.producer.on('ready', () => {
       this.ready = true;
-      this.topic = this.producer.Topic(this.topicName, { 'request.required.acks': 1 });
     });
 
     return new Promise((resolve, reject) => {
@@ -25,14 +30,14 @@ class KafkaProducer {
     });
   }
 
-  produce(message, guid) {
+  produce({ topic = this.topicName, message, key }) {
     return new Promise((resolve, reject) => {
       try {
         this.producer.produce(
-          this.topicName,
-          message.id,
+          topic,
+          null,
           new Buffer(JSON.stringify(message)),
-          guid
+          key
         );
 
         return resolve();
@@ -43,7 +48,13 @@ class KafkaProducer {
   }
 
   errorHandler(err) {
-    console.log('Producer error', err);
+    log.error(err, '', {
+      msg: 'Producer error'
+    });
+  }
+
+  isConnected() {
+    return this.producer.isConnected();
   }
 
   disconnect() {

@@ -2,4 +2,8 @@ version: '2'
 
 services:
   invoices:
+    environment:
+      NODE_ENV: development
+    ports:
+      - "8080:80"
     entrypoint: /home/docker/startup.dev.sh
