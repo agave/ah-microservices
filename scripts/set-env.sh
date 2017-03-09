@@ -8,6 +8,8 @@ if [ "$OS" == "Darwin" ]; then
 fi
 
 echo "DOCKER_HOST_IP"
+# shellcheck disable=SC2005
+# shellcheck disable=SC2155
 echo "$(ifconfig $interface | grep "inet " | cut -d ' ' -f 2)"
 # shellcheck disable=SC2005
 # shellcheck disable=SC2155
