@@ -16,11 +16,11 @@ message Id {
 message Profile {
 	int32 ID = 1;
 	string email = 2;
-	float balance = 3;
-	float heldBalance = 4;
+	double balance = 3;
+	double heldBalance = 4;
 }
 
 message Create {
 	string email = 1;
-	float balance = 2;
+	double balance = 2;
 }
