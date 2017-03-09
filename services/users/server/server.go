@@ -1,14 +1,16 @@
 package server
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"net"
 
+	log "github.com/Sirupsen/logrus"
+	"github.com/agave/ah-microservices/services/users/db"
+	"github.com/agave/ah-microservices/services/users/user"
+	userGen "github.com/agave/ah-microservices/services/users/user/generated"
 	xContext "golang.org/x/net/context"
 	"google.golang.org/grpc"
-
-	userGen "github.com/agave/ah-microservices/services/users/user/generated"
 )
 
 // UserServer implements user service functionality through grpc
@@ -21,9 +23,28 @@ func (s *userServer) GetUser(ctx xContext.Context, id *userGen.Id) (*userGen.Pro
 
 // CreateUser creates a user in the database based on the Create param
 func (s *userServer) CreateUser(ctx xContext.Context, c *userGen.Create) (*userGen.Profile, error) {
-	return nil, nil
+	//TODO: email/security validation
+	if c.Balance < 0 {
+		// log
+		return nil, errors.New("Balance must be greater or equal than/to zero")
+	}
+
+	user := user.Users{
+		Email:   c.GetEmail(),
+		Balance: c.GetBalance(),
+	}
+
+	// create user in db
+	aff, err := db.Engine.Insert(&user)
+	if err == nil && 1 == aff {
+		n := userGen.Profile(user)
+		return &n, nil
+	}
+
+	return &userGen.Profile{}, err
 }
 
+// StartServer configures and starts our Users grpc server
 func StartServer() {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":80"))
 	if err != nil {

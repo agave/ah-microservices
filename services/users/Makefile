@@ -1,12 +1,12 @@
 GOCMD 	= go
-PKG 	= $(glide nv)
+PKG 	= $(glide nv --no-subdir)
 BIN   	= users
 
 .PHONY: %
 
 default: all
 
-all: proto lint test clean-all build
+all: proto lint clean-all build
 build: deps
 	$(GOCMD) build -a -o $(BIN) .
 lint: fmt vet deps
@@ -31,7 +31,7 @@ clean-all:
 	$(GOCMD) clean -i -r $(PKG)
 deps:
 	glide up
-test-deps: deps
+test-deps:
 	$(GOCMD) test -i $(PKG)
 install:
 	$(GOCMD) install

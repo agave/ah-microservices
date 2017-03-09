@@ -6,4 +6,4 @@ services:
       - /home/docker/startup.test.sh
     volumes:
       - ./services/users/unit_coverage:/go/src/github.com/agave/ah-microservices/services/users/unit_coverage
-#      - ./services/users/functional_coverage:/go/src/github.com/agave/ah-microservices/services/users/functional_coverage
+      - ./services/users/functional_coverage:/go/src/github.com/agave/ah-microservices/services/users/functional_coverage

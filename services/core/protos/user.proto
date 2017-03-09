@@ -14,7 +14,7 @@ message Id {
 }
 
 message Profile {
-	string id = 1;
+	int32 ID = 1;
 	string email = 2;
 	float balance = 3;
 	float heldBalance = 4;
