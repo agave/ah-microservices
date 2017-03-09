@@ -6,6 +6,7 @@ COPY ./invoices/scripts /home/docker/
 
 WORKDIR /var/lib/app
 
+RUN rm -rf /var/lib/app/node_modules
 RUN chmod +x /home/docker/*.sh && yarn install
 
 EXPOSE 80
