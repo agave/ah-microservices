@@ -6,5 +6,5 @@ services:
       NODE_ENV: test
     entrypoint: /home/docker/startup.test.sh
     volumes:
-      - ./services/invoices/src/unit_coverage:/var/lib/app/unit_coverage
-      - ./services/invoices/src/functional_coverage:/var/lib/app/functional_coverage
+      - ./services/invoices/unit_coverage:/var/lib/app/unit_coverage
+      - ./services/invoices/functional_coverage:/var/lib/app/functional_coverage
