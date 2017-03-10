@@ -10,14 +10,13 @@ service User {
 
 message Id {
 	string guid = 1;
-	int32 id = 2;
+	int64 id = 2;
 }
 
 message Profile {
-	int32 ID = 1;
+	int64 ID = 1;
 	string email = 2;
 	double balance = 3;
-	double heldBalance = 4;
 }
 
 message Create {
