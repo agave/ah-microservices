@@ -8,7 +8,7 @@ import (
 )
 
 // Engine is the main entrypoint for database operations
-var Engine *xorm.Engine
+var Engine EngineInterface
 
 // InitDB creates an instance of xorm.Engine
 func InitDB(driver, url string) (err error) {
@@ -28,25 +28,26 @@ func InitDB(driver, url string) (err error) {
 	return
 }
 
-// MockEngine is for unit testing
-type MockEngine struct {
-	xorm.Engine
-	Session *MockSession
+type EngineInterface interface {
+	Get(bean interface{}) (bool, error)
+	Insert(beans ...interface{}) (int64, error)
+	InsertOne(bean interface{}) (int64, error)
+	SetMapper(mapper core.IMapper)
+	ShowSQL(show ...bool)
+	Logger() core.ILogger
+	SetLogger(logger core.ILogger)
+	NewSession() *xorm.Session
+	CreateTables(beans ...interface{}) error
+	Close() error
 }
 
-func (s *MockEngine) Get(bean interface{}) (bool, error)         { return false, nil }
-func (s *MockEngine) Insert(beans ...interface{}) (int64, error) { return 0, nil }
-func (s *MockEngine) InsertOne(bean interface{}) (int64, error)  { return 0, nil }
-func (s *MockEngine) NewSession() *MockSession                   { return s.Session }
-
-type MockSession struct {
-	xorm.Session
+type SessionInterface interface {
+	Begin() error
+	Close()
+	Cols(columns ...string) *xorm.Session
+	Id(id interface{}) *xorm.Session
+	Insert(beans ...interface{}) (int64, error)
+	Commit() error
+	Rollback() error
+	Update(bean interface{}, condiBean ...interface{}) (int64, error)
 }
-
-func (s *MockSession) Begin() error                                                     { return nil }
-func (s *MockSession) Close()                                                           {}
-func (s *MockSession) Cols(columns ...string) *MockSession                              { return s }
-func (s *MockSession) Commit() error                                                    { return nil }
-func (s *MockSession) Id(id interface{}) *MockSession                                   { return s }
-func (s *MockSession) Rollback() error                                                  { return nil }
-func (s *MockSession) Update(bean interface{}, condiBean ...interface{}) (int64, error) { return 0, nil }

@@ -36,7 +36,7 @@ func (s *ServerFunctionalSuite) SetupSuite() {
 		}).Fatalln("Error starting database")
 		return
 	}
-	//TODO: check err
+
 	err = db.Engine.CreateTables(&user.Users{})
 	if err != nil {
 		log.WithField("error", err).Fatalln("Error creating tables")

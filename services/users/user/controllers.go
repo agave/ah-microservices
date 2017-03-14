@@ -8,51 +8,57 @@ import (
 	"github.com/agave/ah-microservices/services/users/db"
 )
 
+var session updaterInterface
+var transactionSession db.SessionInterface
+
+type updaterInterface interface {
+	UpdateBalance(*Users) (int64, error)
+	NewSession()
+	Close()
+}
+
+type dbWrapper struct{}
+
+func (s *dbWrapper) UpdateBalance(u *Users) (int64, error) {
+	return transactionSession.Id(u.ID).Cols("balance").Update(&u)
+}
+func (s *dbWrapper) NewSession() {
+	transactionSession = db.Engine.NewSession()
+}
+
+func (s *dbWrapper) Close() {
+	transactionSession.Close()
+}
+
+func init() {
+	session = &dbWrapper{}
+}
+
 // SortConsumedMessage is called everytime a message is consumed and its job
 // is to call the relevant controller to process such message
-func SortConsumedMessage(pe *Event) *Event {
+func SortConsumedMessage(pe *Event) (*Event, error) {
 	switch pe.Type {
 	case "InvoiceUpdated":
-		// ua, err := handleInvoiceUpdated(pe)
-
+		return handleInvoiceUpdated(pe)
 	case "ReservationNotFound":
 		// check if held balance, otherwise just log
 	default:
-		// log.WithField("message", string(m.Value)).Info("Message Consumed")
+		logEventError(nil, pe,
+			"Message Consumed, yet no handler was found for its type")
 	}
-	return nil
+	return nil, nil
 }
 
-func handleInvoiceUpdated(pe *Event) (err error) {
-	var iu InvoiceUpdated
-	err = json.Unmarshal([]byte(pe.Body), &iu)
+func handleInvoiceUpdated(pe *Event) (*Event, error) {
+	var invoice InvoiceUpdated
+	err := json.Unmarshal([]byte(pe.Body), &invoice)
 	if err != nil {
 		logEventError(err, pe, "Malformed Event")
-		return
+		return nil, nil // message should be discarded
 	}
-	switch iu.Status {
+	switch invoice.Status {
 	case "pending_fund":
-		// check InvestorID exists
-		exists, investor := checkInvestor(iu.InvestorID)
-		if !exists {
-			logEventError(nil, pe, "Investor Not Found")
-			return //produce FunderNotFound
-		}
-		// check balance
-		if investor.Balance < iu.Amount {
-			logEventError(nil, pe, "Insufficient Balance")
-			return // produce InsufficientBalance
-		}
-		// hold balance
-		suc, err := holdBalance(&iu, investor)
-		if err != nil {
-			logEventError(err, pe, "Couldn't create held_balance record")
-		}
-
-		if suc {
-			// produce BalanceReserved
-			return nil
-		}
+		return pendingFund(&invoice, pe)
 	case "funded":
 		// look for/remove held_balance record
 		// maybe produce an event
@@ -60,39 +66,67 @@ func handleInvoiceUpdated(pe *Event) (err error) {
 	default:
 		// log
 	}
-	return //status
+	return nil, nil //status
 }
 
-func checkInvestor(id int64) (bool, *Users) {
-	u := Users{ID: id}
-	e, err := db.Engine.Get(&u)
+func pendingFund(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
+	// check InvestorID exists
+	investor := &Users{ID: invoice.InvestorID}
+	exists, err := db.Engine.Get(investor)
 	if err != nil {
-		//log
-		// TODO: try again
-		return false, &Users{}
+		logEventError(err, pe, "DB error while looking for investor")
+		return nil, err
 	}
-	return e, &u
+	// Not found
+	if !exists {
+		logEventError(nil, pe, "Investor Not Found")
+		return eventBuilder("FunderNotFound", pe.GUID, pe.Key,
+			&UserActivity{invoice.ID, invoice.InvestorID}), nil
+	}
+	// check balance
+	if investor.Balance < invoice.Amount {
+		logEventError(nil, pe, "Insufficient Balance")
+		return eventBuilder("InsufficientBalance", pe.GUID, pe.Key,
+			&UserActivity{invoice.ID, investor.ID}), nil
+	}
+	// hold balance
+	session.NewSession()
+	defer session.Close()
+	suc, err := holdBalance(invoice, investor)
+	if err != nil {
+		logEventError(err, pe, "Couldn't create held_balance record")
+		return nil, err
+	}
+	// success
+	if suc {
+		return eventBuilder("BalanceReserved", pe.GUID, pe.Key,
+			&UserActivity{invoice.ID, investor.ID}), nil
+	}
+	return nil, nil
 }
 
-func holdBalance(iu *InvoiceUpdated, u *Users) (bool, error) {
+func holdBalance(invoice *InvoiceUpdated, u *Users) (bool, error) {
 	//check if balance already held
-	alr := checkHeldBalance(iu)
+	alr, err := checkHeldBalance(invoice)
+	if err != nil {
+		return false, err
+	}
+
 	if alr {
-		return true, nil
+		return true, err
 	}
 
 	// hold_balance create
 	hb := HeldBalance{
-		UserID: iu.InvestorID, InvoiceID: iu.ID, Amount: iu.Amount,
+		UserID:    invoice.InvestorID,
+		InvoiceID: invoice.ID,
+		Amount:    invoice.Amount,
 	}
 
-	session := db.Engine.NewSession()
-	defer session.Close()
-
-	session.Begin()
-	aff, err := session.Insert(&hb)
+	transactionSession.Begin()
+	aff, err := transactionSession.Insert(&hb)
 	if err != nil {
-		session.Rollback()
+		transactionSession.Rollback()
 		return false, err
 	}
 
@@ -101,30 +135,23 @@ func holdBalance(iu *InvoiceUpdated, u *Users) (bool, error) {
 	}
 
 	// substract held balance from user
-	u.Balance -= iu.Amount
-	afff, err := session.Id(u.ID).Cols("balance").Update(&u)
+	u.Balance -= invoice.Amount
+	afff, err := session.UpdateBalance(u)
 	if err != nil || afff != 1 {
-		session.Rollback()
+		transactionSession.Rollback()
 		return false, fmt.Errorf("Rows affected: %d, error: %v", afff, err)
 	}
 
-	session.Commit()
-	return true, nil
+	return true, transactionSession.Commit()
 }
 
-func checkHeldBalance(iu *InvoiceUpdated) bool {
+func checkHeldBalance(invoice *InvoiceUpdated) (bool, error) {
 	hb := HeldBalance{
-		UserID:    iu.InvestorID,
-		InvoiceID: iu.ID,
-		Amount:    iu.Amount,
+		UserID:    invoice.InvestorID,
+		InvoiceID: invoice.ID,
+		Amount:    invoice.Amount,
 	}
-	e, err := db.Engine.Get(&hb)
-	if err != nil {
-		// log
-		// TODO: try again
-		return false
-	}
-	return e
+	return db.Engine.Get(&hb)
 }
 
 func logEventError(err error, pe *Event, msg string) {
@@ -134,9 +161,6 @@ func logEventError(err error, pe *Event, msg string) {
 }
 
 func eventBuilder(typ, guid, key string, body *UserActivity) *Event {
-	switch typ {
-	case "BalanceReserved":
-
-	}
-	return nil
+	bytes, _ := json.Marshal(body)
+	return &Event{Type: typ, GUID: guid, Body: string(bytes), Key: key}
 }
