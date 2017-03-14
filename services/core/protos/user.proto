@@ -35,3 +35,4 @@ message Verify {
 message Verified {
 	bool canUserFund = 1;
 }
+
