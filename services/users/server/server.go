@@ -80,6 +80,10 @@ func (s *userServer) CreateUser(ctx xContext.Context, c *userGen.Create) (*userG
 		grpc.Errorf(codes.Unknown, "Unable to create user")
 }
 
+func (s *userServer) VerifyUser(ctx xContext.Context, v *userGen.Verify) (*userGen.Verified, error) {
+	return nil, nil
+}
+
 // StartServer configures and starts our Users grpc server
 func StartServer() {
 	// TODO: somehow test this
