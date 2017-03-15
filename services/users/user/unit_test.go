@@ -10,15 +10,26 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type UserUnitMockEngine struct {
+type UsersMockEngine struct {
 	xorm.Engine
 	GetTimesCalled int
+	FeatureFlag    bool
 }
 
-func (s *UserUnitMockEngine) Get(bean interface{}) (bool, error) {
+func (s *UsersMockEngine) Get(bean interface{}) (bool, error) {
 	defer func() {
 		s.GetTimesCalled++
 	}()
+
+	if s.FeatureFlag {
+		switch s.GetTimesCalled {
+		case 0:
+			return false, fmt.Errorf("")
+		case 1:
+			return false, nil
+		}
+		return true, nil
+	}
 
 	switch s.GetTimesCalled {
 	case 0:
@@ -86,7 +97,7 @@ func (s *MockDBWrapper) Close() {}
 
 type UserUnitSuite struct {
 	suite.Suite
-	DB        *UserUnitMockEngine
+	DB        *UsersMockEngine
 	A         *assert.Assertions
 	DBSession *UserUnitMockSession
 	Up        *MockDBWrapper
@@ -94,7 +105,7 @@ type UserUnitSuite struct {
 
 func (s *UserUnitSuite) SetupSuite() {
 	s.A = assert.New(s.T())
-	s.DB = &UserUnitMockEngine{}
+	s.DB = &UsersMockEngine{}
 	db.Engine = s.DB
 	s.DBSession = &UserUnitMockSession{}
 	transactionSession = s.DBSession
@@ -117,7 +128,6 @@ func (s *UserUnitSuite) TestCheckHeldBalance() {
 }
 
 func (s *UserUnitSuite) TestHoldBalance() {
-
 	iu := &InvoiceUpdated{}
 	u := &Users{}
 	a, err := holdBalance(iu, u)
@@ -152,7 +162,7 @@ func (s *UserUnitSuite) TestHoldBalance() {
 }
 
 func (s *UserUnitSuite) TestEventBuilder() {
-	c := &UserActivity{
+	c := &Activity{
 		InvoiceID: 1, UserID: 2,
 	}
 	e := eventBuilder("typ", "guid", "key", c)
@@ -164,10 +174,11 @@ func (s *UserUnitSuite) TestEventBuilder() {
 }
 
 func (s *UserUnitSuite) TestPendingFund() {
+	s.DB.FeatureFlag = true
 	invoice := &InvoiceUpdated{
 		ID:         1,
 		InvestorID: 2,
-		Amount:     0,
+		Amount:     10,
 		Status:     "pending_fund",
 	}
 
@@ -183,25 +194,17 @@ func (s *UserUnitSuite) TestPendingFund() {
 	e, err = pendingFund(invoice, pe)
 	s.A.Equal(pe.GUID, e.GUID)
 	s.A.Equal(pe.Key, e.Key)
-	s.A.Equal("BalanceReserved", e.Type)
+	s.A.Equal("FunderNotFound", e.Type)
 
 	e, err = pendingFund(invoice, pe)
 	s.A.Equal(pe.GUID, e.GUID)
 	s.A.Equal(pe.Key, e.Key)
-	s.A.Equal("FunderNotFound", e.Type)
+	s.A.Equal("InsufficientBalance", e.Type)
 
-	// e, err = pendingFund(invoice, pe)
-	// s.A.Equal(pe.GUID, e.GUID)
-	// s.A.Equal(pe.Key, e.Key)
-	// s.A.Equal("FunderNotFound", e.Type)
-
-	// invoice.Amount = 10
-	// e, err = pendingFund(invoice, pe)
-	// s.A.Equal(pe.GUID, e.GUID)
-	// s.A.Equal(pe.Key, e.Key)
-	// s.A.Equal("InsufficientBalance", e.Type)
-
-	// a, err := holdBalance(invoice, &Users{})
-	// s.A.True(a)
-	// s.A.Nil(err)
+	invoice.Amount = 0
+	e, err = pendingFund(invoice, pe)
+	s.A.Equal(pe.GUID, e.GUID)
+	s.A.Equal(pe.Key, e.Key)
+	s.A.Equal("BalanceReserved", e.Type)
+	s.A.Nil(err)
 }

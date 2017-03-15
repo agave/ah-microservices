@@ -81,13 +81,13 @@ func pendingFund(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
 	if !exists {
 		logEventError(nil, pe, "Investor Not Found")
 		return eventBuilder("FunderNotFound", pe.GUID, pe.Key,
-			&UserActivity{invoice.ID, invoice.InvestorID}), nil
+			&Activity{invoice.ID, invoice.InvestorID}), nil
 	}
 	// check balance
 	if investor.Balance < invoice.Amount {
 		logEventError(nil, pe, "Insufficient Balance")
 		return eventBuilder("InsufficientBalance", pe.GUID, pe.Key,
-			&UserActivity{invoice.ID, investor.ID}), nil
+			&Activity{invoice.ID, investor.ID}), nil
 	}
 	// hold balance
 	session.NewSession()
@@ -100,7 +100,7 @@ func pendingFund(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
 	// success
 	if suc {
 		return eventBuilder("BalanceReserved", pe.GUID, pe.Key,
-			&UserActivity{invoice.ID, investor.ID}), nil
+			&Activity{invoice.ID, investor.ID}), nil
 	}
 	return nil, nil
 }
@@ -160,7 +160,7 @@ func logEventError(err error, pe *Event, msg string) {
 	}).Info(msg)
 }
 
-func eventBuilder(typ, guid, key string, body *UserActivity) *Event {
+func eventBuilder(typ, guid, key string, body *Activity) *Event {
 	bytes, _ := json.Marshal(body)
 	return &Event{Type: typ, GUID: guid, Body: string(bytes), Key: key}
 }

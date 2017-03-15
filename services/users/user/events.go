@@ -19,7 +19,8 @@ type InvoiceUpdated struct {
 	UpdatedAt  string  `json:"updated_at"`
 }
 
-type UserActivity struct {
+// Activity is used to produce event relevant to users
+type Activity struct {
 	InvoiceID int64 `json:"invoice_id"`
 	UserID    int64 `json:"user_id"`
 }

@@ -28,6 +28,7 @@ func InitDB(driver, url string) (err error) {
 	return
 }
 
+// EngineInterface is used to mock db methods during unit tests
 type EngineInterface interface {
 	Get(bean interface{}) (bool, error)
 	Insert(beans ...interface{}) (int64, error)
@@ -41,6 +42,7 @@ type EngineInterface interface {
 	Close() error
 }
 
+// SessionInterface is used to mock xorm.Session objects during unit tests
 type SessionInterface interface {
 	Begin() error
 	Close()
