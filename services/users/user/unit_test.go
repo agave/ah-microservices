@@ -195,11 +195,13 @@ func (s *UserUnitSuite) TestPendingFund() {
 	s.A.Equal(pe.GUID, e.GUID)
 	s.A.Equal(pe.Key, e.Key)
 	s.A.Equal("FunderNotFound", e.Type)
+	s.A.Nil(err)
 
 	e, err = pendingFund(invoice, pe)
 	s.A.Equal(pe.GUID, e.GUID)
 	s.A.Equal(pe.Key, e.Key)
 	s.A.Equal("InsufficientBalance", e.Type)
+	s.A.Nil(err)
 
 	invoice.Amount = 0
 	e, err = pendingFund(invoice, pe)
