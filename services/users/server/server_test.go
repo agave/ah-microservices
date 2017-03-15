@@ -130,6 +130,54 @@ func (s *ServerFunctionalSuite) TestCreateUser() {
 	}
 }
 
+func (s *ServerFunctionalSuite) TestVerifyUser() {
+	type response struct {
+		V *userGen.Verified
+		C codes.Code
+	}
+	type testCases struct {
+		Ins  []*userGen.Verify
+		Outs []*response
+	}
+
+	tc := testCases{
+		Ins: []*userGen.Verify{
+			&userGen.Verify{Amount: 50},
+			&userGen.Verify{Amount: 101},
+			&userGen.Verify{Amount: 42},
+			// not created on fixture run
+			&userGen.Verify{Id: &userGen.Id{Id: -42}, Amount: 0},
+		},
+		Outs: []*response{
+			&response{
+				V: &userGen.Verified{CanUserFund: true}, C: codes.OK},
+			&response{
+				V: &userGen.Verified{CanUserFund: false}, C: codes.OK},
+			&response{
+				V: &userGen.Verified{CanUserFund: true}, C: codes.OK},
+			&response{
+				V: &userGen.Verified{CanUserFund: false}, C: codes.NotFound},
+		},
+	}
+
+	fixtures := []*userGen.Create{
+		&userGen.Create{Email: "user@domain.com", Balance: 100},
+		&userGen.Create{Email: "user4@domain.com", Balance: 100},
+		&userGen.Create{Email: "user2@admin.com", Balance: 42},
+	}
+
+	for i, v := range fixtures {
+		p, _ := grpcClient.CreateUser(context.TODO(), v)
+		tc.Ins[i].Id = &userGen.Id{Id: p.GetID()}
+	}
+
+	for i, v := range tc.Ins {
+		ver, err := grpcClient.VerifyUser(context.TODO(), v)
+		s.A.Equal(tc.Outs[i].V.GetCanUserFund(), ver.GetCanUserFund())
+		s.A.Equal(tc.Outs[i].C, grpc.Code(err))
+	}
+}
+
 func TestServer(t *testing.T) {
 	commonSetup()
 

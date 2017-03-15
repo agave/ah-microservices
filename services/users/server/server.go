@@ -80,8 +80,30 @@ func (s *userServer) CreateUser(ctx xContext.Context, c *userGen.Create) (*userG
 		grpc.Errorf(codes.Unknown, "Unable to create user")
 }
 
-func (s *userServer) VerifyUser(ctx xContext.Context, v *userGen.Verify) (*userGen.Verified, error) {
-	return nil, nil
+func (s *userServer) VerifyUser(ctx xContext.Context,
+	v *userGen.Verify) (*userGen.Verified, error) {
+	GUIDID := log.Fields{"GUID": v.Id.GetGuid(), "ID": v.Id.GetId()}
+	log.WithFields(GUIDID).Debug("Verifying User")
+
+	u := &user.Users{
+		ID: v.Id.GetId(),
+	}
+	exists, err := db.Engine.Get(u)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"GUID": v.Id.GetGuid(), "error": err.Error(),
+		}).Info("Unable to get user")
+		return &userGen.Verified{CanUserFund: false},
+			grpc.Errorf(codes.Unknown, "%v", err)
+	}
+
+	if exists {
+		return &userGen.Verified{CanUserFund: u.Balance >= v.GetAmount()}, nil
+	}
+
+	log.WithFields(GUIDID).Info("User not Found")
+	return &userGen.Verified{CanUserFund: false},
+		grpc.Errorf(codes.NotFound, "Not Found")
 }
 
 // StartServer configures and starts our Users grpc server
