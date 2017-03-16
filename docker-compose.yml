@@ -68,6 +68,7 @@ services:
     image: agavelab/ah-microservices-users
     links:
       - db
+      - kafka
     environment:
       DB_HOST: db
       DB_PORT: 5432
