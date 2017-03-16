@@ -1,10 +1,10 @@
 KafkaBrokers:
-  - "localhost:9092"
+  - "kafka:9092"
 KafkaTopics:
   - "invoice"
 ConsumerGroupID: "consumer-users"
 DB:
-  DBHost: "localhost"
+  DBHost: "db"
   DBPort: 5432
   DBName: "users"
   DBUser: "postgres"
