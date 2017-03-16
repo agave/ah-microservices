@@ -1,7 +1,7 @@
 KafkaBrokers:
   - "kafka:9092"
 KafkaTopics:
-  - "users"
+  - "invoice"
 ConsumerGroupID: "consumer-users"
 DB:
   DBHost: "db"

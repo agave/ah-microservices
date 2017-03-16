@@ -5,7 +5,9 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/agave/ah-microservices/services/users/db"
+	"github.com/agave/ah-microservices/services/users/events"
 	"github.com/agave/ah-microservices/services/users/server"
+	"github.com/agave/ah-microservices/services/users/user"
 	"github.com/agave/ah-microservices/services/users/util"
 	config "github.com/gypsydiver/go-config"
 )
@@ -37,10 +39,12 @@ func dbClientInit() {
 			"url":   url,
 		}).Fatalln("Error starting database")
 	}
+	// TODO Catch error/check if already present
+	db.Engine.CreateTables(&user.Users{}, &user.HeldBalance{})
 }
 
 func main() {
-	// events.LaunchConsumer()
-	// events.LaunchProducer()
+	events.LaunchConsumer()
+	events.LaunchProducer()
 	server.StartServer()
 }

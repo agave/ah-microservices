@@ -10,3 +10,5 @@ import:
 - package: github.com/lib/pq
 - package: github.com/go-xorm/core
   version: ~0.5.6
+- package: github.com/Shopify/sarama
+  version: ~1.11.0
