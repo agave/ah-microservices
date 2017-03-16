@@ -49,7 +49,7 @@ type UserUnitMockSession struct {
 	CloseTimesCalled    int
 }
 
-func (s *UserUnitMockSession) Insert(beans ...interface{}) (int64, error) {
+func (s *UserUnitMockSession) InsertOne(beans interface{}) (int64, error) {
 	defer func() {
 		s.InsertTimesCalled++
 	}()
@@ -147,6 +147,8 @@ func (s *UserUnitSuite) TestHoldBalance() {
 	s.A.NotNil(err)
 
 	a, err = holdBalance(iu, u)
+	s.A.Equal(1, s.DBSession.RollbackTimesCalled, "Session.Rollback should be called once")
+	s.DBSession.RollbackTimesCalled = 0
 	s.A.False(a)
 	s.A.NotNil(err)
 
@@ -199,14 +201,14 @@ func (s *UserUnitSuite) TestPendingFund() {
 
 	e, err = pendingFund(invoice, pe)
 	s.A.Equal(pe.GUID, e.GUID)
-	s.A.Equal(pe.Key, e.Key)
+	s.A.Equal(fmt.Sprint(invoice.InvestorID), e.Key)
 	s.A.Equal("InsufficientBalance", e.Type)
 	s.A.Nil(err)
 
 	invoice.Amount = 0
 	e, err = pendingFund(invoice, pe)
 	s.A.Equal(pe.GUID, e.GUID)
-	s.A.Equal(pe.Key, e.Key)
+	s.A.Equal(fmt.Sprint(invoice.InvestorID), e.Key)
 	s.A.Equal("BalanceReserved", e.Type)
 	s.A.Nil(err)
 }

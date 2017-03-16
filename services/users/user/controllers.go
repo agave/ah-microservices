@@ -20,7 +20,7 @@ type updaterInterface interface {
 type dbWrapper struct{}
 
 func (s *dbWrapper) UpdateBalance(u *Users) (int64, error) {
-	return transactionSession.Id(u.ID).Cols("balance").Update(&u)
+	return transactionSession.Id(u.ID).Cols("balance").Update(u)
 }
 func (s *dbWrapper) NewSession() {
 	transactionSession = db.Engine.NewSession()
@@ -37,6 +37,7 @@ func init() {
 // SortConsumedMessage is called everytime a message is consumed and its job
 // is to call the relevant controller to process such message
 func SortConsumedMessage(pe *Event) (*Event, error) {
+	logEventError(nil, pe, "Incoming event")
 	switch pe.Type {
 	case "InvoiceUpdated":
 		return handleInvoiceUpdated(pe)
@@ -60,9 +61,7 @@ func handleInvoiceUpdated(pe *Event) (*Event, error) {
 	case "pending_fund":
 		return pendingFund(&invoice, pe)
 	case "funded":
-		// look for/remove held_balance record
-		// maybe produce an event
-		// return status
+		return funded(&invoice, pe)
 	default:
 		// log
 	}
@@ -86,8 +85,8 @@ func pendingFund(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
 	// check balance
 	if investor.Balance < invoice.Amount {
 		logEventError(nil, pe, "Insufficient Balance")
-		return eventBuilder("InsufficientBalance", pe.GUID, pe.Key,
-			&Activity{invoice.ID, investor.ID}), nil
+		return eventBuilder("InsufficientBalance", pe.GUID,
+			fmt.Sprint(investor.ID), &Activity{invoice.ID, investor.ID}), nil
 	}
 	// hold balance
 	session.NewSession()
@@ -99,9 +98,16 @@ func pendingFund(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
 	}
 	// success
 	if suc {
-		return eventBuilder("BalanceReserved", pe.GUID, pe.Key,
-			&Activity{invoice.ID, investor.ID}), nil
+		return eventBuilder("BalanceReserved", pe.GUID,
+			fmt.Sprint(investor.ID), &Activity{invoice.ID, investor.ID}), nil
 	}
+	return nil, nil
+}
+
+func funded(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
+	// look for/remove held_balance record
+	// produce UserUpdated event
+	// return status
 	return nil, nil
 }
 
@@ -124,13 +130,14 @@ func holdBalance(invoice *InvoiceUpdated, u *Users) (bool, error) {
 	}
 
 	transactionSession.Begin()
-	aff, err := transactionSession.Insert(&hb)
+	aff, err := transactionSession.InsertOne(&hb)
 	if err != nil {
 		transactionSession.Rollback()
 		return false, err
 	}
 
 	if aff != 1 {
+		transactionSession.Rollback()
 		return false, fmt.Errorf("Rows affected: %d", aff)
 	}
 
@@ -138,6 +145,7 @@ func holdBalance(invoice *InvoiceUpdated, u *Users) (bool, error) {
 	u.Balance -= invoice.Amount
 	afff, err := session.UpdateBalance(u)
 	if err != nil || afff != 1 {
+		u.Balance += invoice.Amount
 		transactionSession.Rollback()
 		return false, fmt.Errorf("Rows affected: %d, error: %v", afff, err)
 	}
