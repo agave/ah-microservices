@@ -59,7 +59,6 @@ func (s *EventsFunctionalSuite) SetupSuite() {
 		log.WithField("error", err).Fatalln("Error inserting fixtures")
 		return
 	}
-
 }
 
 func (s *EventsFunctionalSuite) TearDownSuite() {
@@ -111,6 +110,7 @@ func (s *EventsFunctionalSuite) TestBConsumer() {
 
 	err := Producer.Outbound(s.EventFixtures[1])
 	s.A.Nil(err)
+	time.Sleep(time.Second * 2)
 }
 
 func (s *EventsFunctionalSuite) TestParseEvent() {
