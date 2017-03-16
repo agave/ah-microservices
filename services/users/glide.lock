@@ -1,5 +1,5 @@
 hash: 379eb0e7facdab83c6f9f5a040be3e10a4c742b047f6b4f6503083817ab15c27
-updated: 2017-03-14T11:29:14.235080326-06:00
+updated: 2017-03-15T16:04:32.27403777-06:00
 imports:
 - name: github.com/bsm/sarama-cluster
   version: e92a2f7a82a6f2bbdd2f7305b8a833fa22eb2138
@@ -46,7 +46,7 @@ imports:
 - name: github.com/Shopify/sarama
   version: 0fb560e5f7fbcaee2f75e3c34174320709f69944
 - name: github.com/Sirupsen/logrus
-  version: 0208149b40d863d2c1a2f8fe5753096a9cf2cc8b
+  version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
 - name: golang.org/x/net
   version: a6577fac2d73be281a500b310739095313165611
   subpackages:
