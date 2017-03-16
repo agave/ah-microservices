@@ -22,7 +22,7 @@ getServices(SERVICES_RELATIVE_PATH, excludedServices).forEach(service => {
   const serviceRelativePath = `${SERVICES_RELATIVE_PATH}/${service}`;
   const unitCoverageFile = `${serviceRelativePath}/unit_coverage/lcov.info`;
   const functionalCoverageFile = `${serviceRelativePath}/functional_coverage/lcov.info`;
-  const newAbsolutePath = `${SERVICES_ABSOLUTE_PATH}/${service}`;
+  const newAbsolutePath = `${SERVICES_ABSOLUTE_PATH}/${service}/src`;
 
   const hasUnitCoverage = fs.existsSync(unitCoverageFile);
   const hasFunctionalCoverage = fs.existsSync(functionalCoverageFile);

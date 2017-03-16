@@ -6,6 +6,7 @@ option go_package = "github.com/agave/ah-microservices/services/users/user/gener
 service User {
 	rpc GetUser(Id) returns (Profile) {}
 	rpc CreateUser(Create) returns (Profile) {}
+	rpc VerifyUser(Verify) returns (Verified) {}
 }
 
 message Id {
@@ -24,3 +25,13 @@ message Create {
 	string email = 2;
 	double balance = 3;
 }
+
+message Verify {
+	Id id = 1;
+	double amount = 2;
+}
+
+message Verified {
+	bool canUserFund = 1;
+}
+
