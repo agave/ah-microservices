@@ -60,15 +60,14 @@ func (s *EventsFunctionalSuite) SetupSuite() {
 		return
 	}
 
-	Init()
 }
 
 func (s *EventsFunctionalSuite) TearDownSuite() {
 	db.Engine.Close()
-	KafkaClient.Close()
 }
 
-func (s *EventsFunctionalSuite) TestProducer() {
+func (s *EventsFunctionalSuite) TestAProducer() {
+	Init()
 	LaunchProducer()
 	defer Producer.AsyncProducer.AsyncClose()
 	err := Producer.Outbound(nil)
@@ -84,34 +83,38 @@ func (s *EventsFunctionalSuite) TestProducer() {
 	s.A.Nil(err)
 	time.Sleep(time.Second)
 	s.A.Equal(int64(1), Producer.Errors, "Producing message should error")
-
-	Init()
 }
 
-func (s *EventsFunctionalSuite) TestConsumer() {
+func (s *EventsFunctionalSuite) TestBConsumer() {
+	Init()
+	defer KafkaClient.Close()
+
 	LaunchConsumer()
 	defer Consumer.ClusterConsumer.Close()
 
 	Producer = &EventProducer{Topic: "invoice"}
 	Producer.Init()
-	defer Producer.AsyncProducer.AsyncClose()
 	go Producer.HandleIncoming()
+	defer Producer.AsyncProducer.AsyncClose()
 
 	inv := user.InvoiceUpdated{
-		InvestorID: s.UserFixtures[0].ID,
-		Amount:     20,
+		InvestorID: s.UserFixtures[1].ID,
+		Amount:     20.05,
 		ID:         5,
+		Status:     "pending_fund",
+		CreatedAt:  "today",
+		UpdatedAt:  "never",
 	}
 
 	body, _ := json.Marshal(inv)
-	s.EventFixtures[0].Body = string(body)
+	s.EventFixtures[1].Body = string(body)
 
-	err := Producer.Outbound(s.EventFixtures[0])
+	err := Producer.Outbound(s.EventFixtures[1])
 	s.A.Nil(err)
 }
 
 func (s *EventsFunctionalSuite) TestParseEvent() {
-	v := &user.Event{Type: "EventType", GUID: "123", Body: "", Key: "2"}
+	v := &user.Event{Type: "EventType", GUID: "123", Body: "test-ignore", Key: "2"}
 	vBytes, _ := json.Marshal(v)
 	m := &sarama.ConsumerMessage{
 		Value: vBytes,

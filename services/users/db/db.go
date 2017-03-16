@@ -39,6 +39,7 @@ type EngineInterface interface {
 	SetLogger(logger core.ILogger)
 	NewSession() *xorm.Session
 	CreateTables(beans ...interface{}) error
+	DropTables(beans ...interface{}) error
 	Close() error
 }
 
@@ -49,6 +50,7 @@ type SessionInterface interface {
 	Cols(columns ...string) *xorm.Session
 	Id(id interface{}) *xorm.Session
 	Insert(beans ...interface{}) (int64, error)
+	InsertOne(beans interface{}) (int64, error)
 	Commit() error
 	Rollback() error
 	Update(bean interface{}, condiBean ...interface{}) (int64, error)
