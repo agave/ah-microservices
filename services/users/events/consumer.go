@@ -12,12 +12,16 @@ import (
 	cluster "github.com/bsm/sarama-cluster"
 )
 
+// Consumer will be our runtime object for consuming messages
 var Consumer *EventConsumer
 
+// EventConsumer is a custom struct that encapsulates cluster's Consumer
+// this is for mockability and result tracking during testing
 type EventConsumer struct {
 	ClusterConsumer *cluster.Consumer
 }
 
+// Init initializes our ClusterConsumer to consume our configured topics
 func (s *EventConsumer) Init() (err error) {
 	s.ClusterConsumer, err = cluster.NewConsumerFromClient(KafkaClient,
 		util.Config.GroupID, util.Config.Topics)
@@ -27,8 +31,10 @@ func (s *EventConsumer) Init() (err error) {
 	return
 }
 
-//TODO: notify errors, log topic
+// Listen will be in charge of commiting offsets reporting errors and
+// calling relevant controllers
 func (s *EventConsumer) Listen() {
+	//TODO: log topic
 	for {
 		m := <-s.ClusterConsumer.Messages()
 		if m != nil {

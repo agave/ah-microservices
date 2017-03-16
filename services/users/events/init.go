@@ -11,6 +11,8 @@ import (
 // and producers
 var KafkaClient *cluster.Client
 
+// Init configures and starts our kafka client (used to create
+// consumers and producers)
 func Init() {
 	var err error
 	conf := cluster.NewConfig()

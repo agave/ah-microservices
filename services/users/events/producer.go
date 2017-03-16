@@ -9,8 +9,11 @@ import (
 	"github.com/agave/ah-microservices/services/users/user"
 )
 
+// Producer will be our runtime object for producing messages
 var Producer *EventProducer
 
+// EventProducer is a custom struct that encapsulates sarama's Producer
+// this is for mockability and result tracking during testing
 type EventProducer struct {
 	AsyncProducer sarama.AsyncProducer
 	Successes     int64
@@ -18,6 +21,7 @@ type EventProducer struct {
 	Topic         string
 }
 
+// Init initializes out AsyncProducer
 func (s *EventProducer) Init() (err error) {
 	s.AsyncProducer, err = sarama.NewAsyncProducerFromClient(KafkaClient)
 	if err != nil {
@@ -26,6 +30,7 @@ func (s *EventProducer) Init() (err error) {
 	return
 }
 
+// HandleIncoming counts and reports both errors and successes
 func (s *EventProducer) HandleIncoming() {
 	for {
 		select {
@@ -44,6 +49,7 @@ func (s *EventProducer) HandleIncoming() {
 	}
 }
 
+// Outbound receives a user.Event and produces it to the kafka queue
 func (s *EventProducer) Outbound(msg *user.Event) error {
 	if msg == nil {
 		return fmt.Errorf("Message can't be nil")
@@ -60,6 +66,7 @@ func (s *EventProducer) Outbound(msg *user.Event) error {
 	return nil
 }
 
+// LaunchProducer creates a Kafka Producer that translates outbound messages
 func LaunchProducer() {
 	Producer = &EventProducer{Topic: "user"}
 	Producer.Init()
