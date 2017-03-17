@@ -12,8 +12,9 @@ import (
 
 type UsersMockEngine struct {
 	xorm.Engine
-	GetTimesCalled int
-	FeatureFlag    bool
+	GetTimesCalled    int
+	DeleteTimesCalled int
+	FeatureFlag       bool
 }
 
 func (s *UsersMockEngine) Get(bean interface{}) (bool, error) {
@@ -38,6 +39,17 @@ func (s *UsersMockEngine) Get(bean interface{}) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+func (s *UsersMockEngine) Delete(bean interface{}) (int64, error) {
+	defer func() {
+		s.DeleteTimesCalled++
+	}()
+	switch s.DeleteTimesCalled {
+	case 0:
+		return 1, nil
+	}
+	return 0, nil
 }
 
 type UserUnitMockSession struct {
@@ -211,4 +223,29 @@ func (s *UserUnitSuite) TestPendingFund() {
 	s.A.Equal(fmt.Sprint(invoice.InvestorID), e.Key)
 	s.A.Equal("BalanceReserved", e.Type)
 	s.A.Nil(err)
+}
+
+func (s *UserUnitSuite) TestFunded() {
+	s.DB.FeatureFlag = false
+	invoice := &InvoiceUpdated{
+		ID:         1,
+		InvestorID: 2,
+		Amount:     10,
+		Status:     "funded",
+	}
+
+	pe := &Event{
+		GUID: "guid",
+		Key:  "key",
+	}
+
+	e, err := funded(invoice, pe)
+	s.A.Nil(e)
+	s.A.NotNil(err)
+
+	e, err = funded(invoice, pe)
+	s.A.Nil(err)
+	s.A.Equal(pe.GUID, e.GUID)
+	s.A.Equal("UserUpdated", e.Type)
+	s.A.Equal(fmt.Sprint(invoice.InvestorID), e.Key)
 }
