@@ -40,6 +40,7 @@ type EngineInterface interface {
 	NewSession() *xorm.Session
 	CreateTables(beans ...interface{}) error
 	DropTables(beans ...interface{}) error
+	Delete(bean interface{}) (int64, error)
 	Close() error
 }
 
