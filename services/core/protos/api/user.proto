@@ -1,0 +1,58 @@
+syntax = "proto3";
+package user;
+
+option go_package = "github.com/agave/ah-microservices/services/grpc-gateway/api/user/generated";
+
+import "google/api/annotations.proto";
+
+service User {
+  rpc Get(UserId) returns (UserInfo) {
+    option (google.api.http) = {
+      get: "/api/v1/users/{id}"
+    };
+  }
+
+  rpc Create(UserCreateParams) returns (UserInfo){
+    option (google.api.http) = {
+      post: "/api/v1/users"
+      body: "*"
+    };
+  }
+
+  rpc Verify(UserVerifyParams) returns (Verified) {
+      option (google.api.http) = {
+        post: "/api/v1/users"
+        body: "*"
+      };
+  }
+
+  /*rpc Update(UserInfo) returns (UserInfo){
+    option (google.api.http) = {
+      post: "api/v1/users"
+      body: "*"
+    };
+  }*/
+}
+
+message UserId {
+    int64 id = 2;
+}
+message UserInfo {
+    int64 ID = 1;
+    string email = 2;
+    double balance = 3;
+}
+
+message UserCreateParams {
+    string email = 2;
+    double balance = 3;
+}
+
+message UserVerifyParams {
+    UserId id = 1;
+    double amount = 2;
+}
+
+message Verified {
+    bool canUserFund = 1;
+}

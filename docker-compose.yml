@@ -75,3 +75,14 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: users
+  grpc-gateway:
+    build:
+      context: ./services
+      dockerfile: ./grpc-gateway/Dockerfile
+    image: agavelab/ah-microservices-grpc-gateway
+    links:
+      - apigateway
+    environment:
+      PORT: 80
+    labels:
+      container_group: service

@@ -1,7 +1,7 @@
 syntax = "proto3";
 package invoice;
 
-option go_package = "github.com/agave/ah-microservices/services/grpc-gateway/src/api/invoice/generated";
+option go_package = "github.com/agave/ah-microservices/services/grpc-gateway/api/invoice/generated";
 
 import "google/api/annotations.proto";
 
@@ -14,11 +14,13 @@ service Invoice {
   rpc Create(InvoiceCreateParams) returns (InvoiceInfo) {
     option (google.api.http) = {
       post: "/api/v1/invoice"
+      body: "*"
     };
   }
   rpc Fund(InvoiceFundParams) returns (InvoiceInfo) {
     option (google.api.http) = {
       post: "/api/v1/invoice"
+      body: "*"
     };
   }
 }
