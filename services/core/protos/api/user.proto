@@ -21,7 +21,7 @@ service User {
 
   rpc Verify(UserVerifyParams) returns (Verified) {
       option (google.api.http) = {
-        post: "/api/v1/users"
+        post: "/api/v1/users/verify"
         body: "*"
       };
   }
