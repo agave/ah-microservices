@@ -6,7 +6,8 @@ RUN apt-get update && \
     npm install -g --progress=false yarn nodemon
 
 RUN mkdir /var/lib/app
-COPY package.json yarn.lock /var/lib/app/
+COPY package.json /var/lib/app/
 WORKDIR /var/lib/app
 
-RUN yarn install
+RUN yarn global add torus-cli && \
+    yarn install
