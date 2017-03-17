@@ -106,9 +106,7 @@ func (s *userServer) VerifyUser(ctx xContext.Context,
 			grpc.Errorf(codes.NotFound, "Not Found")
 	}
 
-	u := &user.Users{
-		ID: realID,
-	}
+	u := &user.Users{ID: realID}
 	exists, err := db.Engine.Get(u)
 	if err != nil {
 		log.WithFields(log.Fields{
@@ -125,6 +123,60 @@ func (s *userServer) VerifyUser(ctx xContext.Context,
 	log.WithFields(GUIDID).Info("User not Found")
 	return &userGen.Verified{CanUserFund: false},
 		grpc.Errorf(codes.NotFound, "Not Found")
+}
+
+func (s *userServer) UpdateUser(ctx xContext.Context,
+	c *userGen.UpdateUserParams) (*userGen.Profile, error) {
+	logRequestFields := log.Fields{"GUID": c.GetGuid(), "data": c.String()}
+	log.WithFields(logRequestFields).Info("Received request")
+
+	realID, err := strconv.ParseInt(c.GetId(), 10, 64)
+	if realID <= 0 || err != nil {
+		log.WithFields(log.Fields{
+			"GUID": c.GetGuid(), "Id": c.GetId(),
+		}).Info("Not Found")
+		return nil, grpc.Errorf(codes.NotFound, "Not Found")
+	}
+
+	log.WithField("GUID", c.GetGuid()).Info("Updating user in db")
+	cols := determineChanges(c)
+	if len(cols) == 0 {
+		log.WithFields(logRequestFields).Info("User unchanged")
+		return nil, grpc.Errorf(codes.Canceled, "User unchanged")
+	}
+
+	var (
+		aff   int64
+		dbErr error
+	)
+	bean := &user.Users{Email: c.GetEmail(), Balance: c.GetBalance()}
+	aff, dbErr = db.Engine.Id(realID).Cols(cols...).Update(bean)
+	if aff != 1 || dbErr != nil {
+		log.WithFields(log.Fields{
+			"GUID": c.GetGuid(), "error": err,
+		}).Error("Unable to update user")
+		return nil, grpc.Errorf(codes.Unknown,
+			"Rows affected: %d, error: %v", aff, err)
+	}
+
+	log.WithFields(logRequestFields).Info("User updated")
+	us := &user.Users{ID: realID}
+	db.Engine.Get(us)
+	return &userGen.Profile{
+		Id:      fmt.Sprintf("%d", us.ID),
+		Email:   us.Email,
+		Balance: us.Balance,
+	}, nil
+}
+
+func determineChanges(c *userGen.UpdateUserParams) (cols []string) {
+	if c.GetEmail() != "" {
+		cols = append(cols, "email")
+	}
+	if c.GetChangeBalance() {
+		cols = append(cols, "balance")
+	}
+	return
 }
 
 // StartServer configures and starts our Users grpc server

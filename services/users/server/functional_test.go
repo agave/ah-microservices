@@ -44,6 +44,12 @@ func (s *ServerFunctionalSuite) SetupSuite() {
 }
 
 func (s *ServerFunctionalSuite) TearDownSuite() {
+	if ok, _ := db.Engine.IsTableExist(&user.Users{}); ok {
+		db.Engine.DropTables(&user.Users{})
+	}
+	if ok, _ := db.Engine.IsTableExist(&user.HeldBalance{}); ok {
+		db.Engine.DropTables(&user.HeldBalance{})
+	}
 	db.Engine.Close()
 }
 
@@ -110,4 +116,84 @@ func (s *ServerFunctionalSuite) TestCreateUser() {
 			s.A.Equal(c.GetBalance(), p.GetBalance(), "Insert should return same Balance")
 		}
 	}
+}
+
+func (s *ServerFunctionalSuite) TestUpdateUser() {
+	//insert fixtures
+	createFixture := &userGen.Create{
+		Email:   "user@domain.org",
+		Balance: 10.00,
+	}
+	u, err := grpcClient.CreateUser(context.TODO(), createFixture)
+	s.A.Nil(err)
+	s.A.Equal(createFixture.GetEmail(), u.GetEmail(), "Should return inserted fixture's email")
+	s.A.Equal(createFixture.GetBalance(), u.GetBalance(), "Should return inserted fixture's balance")
+	s.A.NotEmpty(u.GetId(), "Should return with a valid Id")
+
+	//change email
+	updateParams := &userGen.UpdateUserParams{
+		Id:            u.GetId(),
+		Email:         "user@domain.com",
+		Balance:       0.0,
+		ChangeBalance: false,
+	}
+
+	nu, err := grpcClient.UpdateUser(context.TODO(), updateParams)
+	s.A.Nil(err)
+	s.A.Equal(updateParams.GetEmail(), nu.GetEmail(), "User email should be updated when not empty")
+	s.A.NotEqual(updateParams.GetBalance(), nu.GetBalance(), "Balance shouldn't be updated when ChangeBalanceFlag is false")
+	s.A.Equal(updateParams.GetId(), nu.GetId(), "Id never changes")
+
+	// change balance
+	updateParams = &userGen.UpdateUserParams{
+		Id:            u.GetId(),
+		Email:         "", //email remains the same
+		Balance:       1000.0,
+		ChangeBalance: true,
+	}
+
+	nu, err = grpcClient.UpdateUser(context.TODO(), updateParams)
+	s.A.Nil(err)
+	s.A.NotEqual(updateParams.GetEmail(), nu.GetEmail(), "User email should not update when empty")
+	s.A.Equal(updateParams.GetBalance(), nu.GetBalance(), "Balance should be updated")
+
+	// invalid/non existent id
+	updateParams = &userGen.UpdateUserParams{
+		Id:            "-666",
+		Email:         "", //email remains the same
+		Balance:       1000.0,
+		ChangeBalance: true,
+	}
+
+	nu, err = grpcClient.UpdateUser(context.TODO(), updateParams)
+	s.A.NotNil(err)
+	s.A.Equal(codes.NotFound, grpc.Code(err))
+	s.A.Nil(nu)
+
+	//no changes
+	updateParams = &userGen.UpdateUserParams{
+		Id:            u.GetId(),
+		Email:         "", //email remains the same
+		Balance:       1000.0,
+		ChangeBalance: false, // balance too
+	}
+
+	nu, err = grpcClient.UpdateUser(context.TODO(), updateParams)
+	s.A.NotNil(err)
+	s.A.Equal(codes.Canceled, grpc.Code(err))
+	s.A.Nil(nu)
+
+	// db error
+	db.Engine.DropTables(&user.Users{})
+	updateParams = &userGen.UpdateUserParams{
+		Id:            u.GetId(),
+		Email:         "user@domain.com", //email remains the same
+		Balance:       1000.0,
+		ChangeBalance: true, // balance too
+	}
+
+	nu, err = grpcClient.UpdateUser(context.TODO(), updateParams)
+	s.A.NotNil(err)
+	s.A.Equal(codes.Unknown, grpc.Code(err))
+	s.A.Nil(nu)
 }

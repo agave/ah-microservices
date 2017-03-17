@@ -7,7 +7,7 @@ service User {
 	rpc GetUser(Id) returns (Profile) {}
 	rpc CreateUser(Create) returns (Profile) {}
 	rpc VerifyUser(Verify) returns (Verified) {}
-	/*rpc UpdateUser(Create) returns (Profile) {}*/
+	rpc UpdateUser(UpdateUserParams) returns (Profile) {}
 }
 
 message Id {
@@ -35,4 +35,12 @@ message Verify {
 
 message Verified {
 	bool canUserFund = 1;
+}
+
+message UpdateUserParams {
+	string id = 1;
+	string guid = 2;
+	string email = 3;
+	double balance = 4;
+	bool changeBalance = 5;
 }

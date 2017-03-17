@@ -4,7 +4,7 @@ KafkaTopics:
   - "invoice"
 ConsumerGroupID: "consumer-users"
 DB:
-  Host: "db"
+  Host: "localhost"
   Port: 5432
   DBName: "users"
   Username: "postgres"
