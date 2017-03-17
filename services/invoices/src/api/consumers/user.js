@@ -67,7 +67,7 @@ class UserConsumer extends BaseConsumer {
       }
       invoice = invoiceInstance;
 
-      return invoice.update({ status: 'new' });
+      return invoice.update({ status: 'new', investor_id: null });
     })
     .then(() => {
       if (invoice) {
@@ -103,7 +103,7 @@ class UserConsumer extends BaseConsumer {
       }
       invoice = invoiceInstance;
 
-      return invoice.update({ status: 'new' });
+      return invoice.update({ status: 'new', investor_id: null });
     })
     .then(() => {
       if (invoice) {

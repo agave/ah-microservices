@@ -37,7 +37,7 @@ class Gateway {
   createInvoice(req) {
     const data = {
       guid: req.guid,
-      provider_id: req.provider_id,
+      provider_id: String(req.provider_id),
       amount: req.amount
     };
 
@@ -47,7 +47,7 @@ class Gateway {
   getInvoice(req) {
     const data = {
       guid: req.guid,
-      id: req.id
+      id: String(req.id)
     };
 
     return this.request(this.invoice, 'get', data);
@@ -56,11 +56,40 @@ class Gateway {
   fundInvoice(req) {
     const data = {
       guid: req.guid,
-      id: req.id,
-      investor_id: req.investor_id
+      id: String(req.id),
+      investor_id: String(req.investor_id)
     };
 
     return this.request(this.invoice, 'fund', data);
+  }
+
+  createUser(req) {
+    const data = {
+      guid: req.guid,
+      email: req.email,
+      balance: req.balance
+    };
+
+    return this.request(this.user, 'createUser', data);
+  }
+
+  getUser(req) {
+    const data = {
+      guid: req.guid,
+      id: String(req.id)
+    };
+
+    return this.request(this.user, 'getUser', data);
+  }
+
+  verifyUserBalance(req) {
+    const data = {
+      guid: req.guid,
+      id: String(req.id),
+      amount: req.amount
+    };
+
+    return this.request(this.user, 'verifyUser', data);
   }
 }
 

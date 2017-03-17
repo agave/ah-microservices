@@ -1,3 +1,4 @@
 #!/bin/bash
 
-nodemon app.js
+#nodemon app.js
+tail -f /dev/null

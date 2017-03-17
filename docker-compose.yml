@@ -37,6 +37,7 @@ services:
     image: agavelab/ah-microservices-apigateway
     links:
       - invoices
+      - users
     environment:
       PORT: 80
     labels:

@@ -3,11 +3,11 @@ const eventSchema = require('./event');
 const body = {
   invoice_id: {
     required: true,
-    type: 'integer'
+    type: 'number'
   },
   user_id: {
     required: true,
-    type: 'integer'
+    type: 'number'
   }
 };
 

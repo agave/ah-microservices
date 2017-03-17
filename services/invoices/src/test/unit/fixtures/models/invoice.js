@@ -12,9 +12,9 @@ module.exports = {
   summary: {
     invoice,
     summary: {
-      id: invoice.id,
-      provider_id: invoice.provider_id,
-      investor_id: invoice.investor_id,
+      id: String(invoice.id),
+      provider_id: String(invoice.provider_id),
+      investor_id: String(invoice.investor_id),
       amount: invoice.amount,
       status: invoice.status,
       created_at: invoice.created_at.toString(),
