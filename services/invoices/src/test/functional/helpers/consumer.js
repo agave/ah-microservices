@@ -34,7 +34,7 @@ class ConsumerHelper {
 
         return setTimeout(() => {
           return this.getNextEvent(retries + 1).then(resolve).catch(reject);
-        }, 500);
+        }, 1000);
       }
 
       return resolve(this.consumedEvents.shift());
