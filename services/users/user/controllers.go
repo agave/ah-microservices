@@ -37,14 +37,15 @@ func init() {
 // SortConsumedMessage is called everytime a message is consumed and its job
 // is to call the relevant controller to process such message
 func SortConsumedMessage(pe *Event) (*Event, error) {
-	logEventError(nil, pe, "Incoming event")
+	logEventAndOrError(nil, pe, "Incoming event")
 	switch pe.Type {
 	case "InvoiceUpdated":
 		return handleInvoiceUpdated(pe)
 	case "ReservationNotFound":
 		// check if held balance, otherwise just log
+		logEventAndOrError(nil, pe, "ReservationNotFound ACK, nothing to do")
 	default:
-		logEventError(nil, pe,
+		logEventAndOrError(nil, pe,
 			"Message Consumed, yet no handler was found for its type")
 	}
 	return nil, nil
@@ -54,7 +55,7 @@ func handleInvoiceUpdated(pe *Event) (*Event, error) {
 	var invoice InvoiceUpdated
 	err := json.Unmarshal([]byte(pe.Body), &invoice)
 	if err != nil {
-		logEventError(err, pe, "Malformed Event")
+		logEventAndOrError(err, pe, "Malformed Event")
 		return nil, nil // message should be discarded
 	}
 	switch invoice.Status {
@@ -62,8 +63,6 @@ func handleInvoiceUpdated(pe *Event) (*Event, error) {
 		return pendingFund(&invoice, pe)
 	case "funded":
 		return funded(&invoice, pe)
-	default:
-		// log
 	}
 	return nil, nil //status
 }
@@ -73,18 +72,18 @@ func pendingFund(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
 	investor := &Users{ID: invoice.InvestorID}
 	exists, err := db.Engine.Get(investor)
 	if err != nil {
-		logEventError(err, pe, "DB error while looking for investor")
+		logEventAndOrError(err, pe, "DB error while looking for investor")
 		return nil, err
 	}
 	// Not found
 	if !exists {
-		logEventError(nil, pe, "Investor Not Found")
+		logEventAndOrError(nil, pe, "Investor Not Found")
 		return eventBuilder("FunderNotFound", pe.GUID, pe.Key,
 			&Activity{invoice.ID, invoice.InvestorID}), nil
 	}
 	// check balance
 	if investor.Balance < invoice.Amount {
-		logEventError(nil, pe, "Insufficient Balance")
+		logEventAndOrError(nil, pe, "Insufficient Balance")
 		return eventBuilder("InsufficientBalance", pe.GUID,
 			fmt.Sprint(investor.ID), &Activity{invoice.ID, investor.ID}), nil
 	}
@@ -93,7 +92,7 @@ func pendingFund(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
 	defer session.Close()
 	suc, err := holdBalance(invoice, investor)
 	if err != nil {
-		logEventError(err, pe, "Couldn't create held_balance record")
+		logEventAndOrError(err, pe, "Couldn't create held_balance record")
 		return nil, err
 	}
 	// success
@@ -105,9 +104,31 @@ func pendingFund(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
 }
 
 func funded(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
-	// look for/remove held_balance record
-	// produce UserUpdated event
-	// return status
+	held, err := checkHeldBalance(invoice)
+	if err != nil {
+		logEventAndOrError(err, pe, "Couldn't check for held_balance record")
+		return nil, err
+	}
+	if held {
+		aff, err := db.Engine.Delete(&HeldBalance{
+			UserID:    invoice.InvestorID,
+			InvoiceID: invoice.ID,
+			Amount:    invoice.Amount,
+		})
+
+		if err != nil || aff != 1 {
+			msg := "Couldn't delete held_balance record, Rows affected: %d, err: %v"
+			logEventAndOrError(err, pe,
+				fmt.Sprintf(msg, aff, err))
+			return nil, fmt.Errorf(msg, aff, err)
+		}
+
+		return eventBuilder("UserUpdated", pe.GUID,
+			fmt.Sprint(invoice.InvestorID),
+			&Activity{invoice.ID, invoice.InvestorID}), nil
+	}
+
+	log.WithField("Event", pe).Fatalln("There is a bug in the funded controller, execution shouldn't reach this point")
 	return nil, nil
 }
 
@@ -162,7 +183,7 @@ func checkHeldBalance(invoice *InvoiceUpdated) (bool, error) {
 	return db.Engine.Get(&hb)
 }
 
-func logEventError(err error, pe *Event, msg string) {
+func logEventAndOrError(err error, pe *Event, msg string) {
 	log.WithFields(log.Fields{
 		"GUID": pe.GUID, "Type": pe.Type, "error": err, "event": pe,
 	}).Info(msg)
