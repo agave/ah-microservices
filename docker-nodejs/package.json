@@ -1,0 +1,26 @@
+{
+  "name": "",
+  "version": "0.0.1",
+  "private": true,
+  "description": "",
+  "keywords": [],
+  "author": "",
+  "license": "",
+  "main": "app.js",
+  "engines": {
+    "node": ">=4.5.0"
+  },
+  "dependencies": {
+    "grpc": "^1.0.1",
+    "lodash": "^4.17.4",
+    "winston": "^2.3.1"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-as-promised": "^6.0.0",
+    "is-my-json-valid": "^2.15.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^3.2.0",
+    "sinon": "^1.17.7"
+  }
+}
