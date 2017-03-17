@@ -34,7 +34,6 @@ func (s *EventConsumer) Init() (err error) {
 // Listen will be in charge of commiting offsets reporting errors and
 // calling relevant controllers
 func (s *EventConsumer) Listen() {
-	//TODO: log topic
 	for {
 		m := <-s.ClusterConsumer.Messages()
 		if m != nil {

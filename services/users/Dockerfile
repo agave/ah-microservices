@@ -11,4 +11,4 @@ RUN chmod +x /home/docker/*.sh \
     && make import_path=protos service_proto=user
 RUN apk del --no-progress curl git
 
-ENTRYPOINT ./users
+ENTRYPOINT ["/home/docker/startup.sh"]

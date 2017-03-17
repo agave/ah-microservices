@@ -7,16 +7,16 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type UtilUnitSuite struct {
+type UtilSuite struct {
 	suite.Suite
 	A *assert.Assertions
 }
 
-func (s *UtilUnitSuite) SetupSuite() {
+func (s *UtilSuite) SetupSuite() {
 	s.A = assert.New(s.T())
 }
 
-func (s *UtilUnitSuite) TestFormatDBURL() {
+func (s *UtilSuite) TestFormatDBURL() {
 	cases := make(map[string]*DBOptions)
 
 	cases["://user:pass@host:123/name?option=true&another=false"] = &DBOptions{
@@ -35,10 +35,10 @@ func (s *UtilUnitSuite) TestFormatDBURL() {
 
 func TestUtil(t *testing.T) {
 	t.Run("unit", func(t *testing.T) {
-		suite.Run(t, new(UtilUnitSuite))
+		suite.Run(t, new(UtilSuite))
 	})
 
-	// t.Run("functional", func(t *testing.T) {
-	// 	suite.Run(t, new(UtilFunctionalSuite))
-	// })
+	t.Run("functional", func(t *testing.T) {
+		suite.Run(t, new(UtilSuite))
+	})
 }
