@@ -12,11 +12,11 @@ service User {
 
 message Id {
 	string guid = 1;
-	int64 id = 2;
+	string id = 2;
 }
 
 message Profile {
-	int64 id = 1;
+	string id = 1;
 	string email = 2;
 	double balance = 3;
 }
@@ -28,7 +28,7 @@ message Create {
 }
 
 message Verify {
-	Id id = 1;
+	string id = 1;
 	string guid = 2;
 	double amount = 3;
 }

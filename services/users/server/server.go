@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net"
+	"strconv"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/agave/ah-microservices/services/users/db"
@@ -19,34 +20,35 @@ type userServer struct{}
 
 // GetUser looks for the Id param in the database and returns user details if found
 func (s *userServer) GetUser(ctx xContext.Context, id *userGen.Id) (*userGen.Profile, error) {
-	log.WithFields(log.Fields{
-		"GUID": id.GetGuid(), "data": id.String(),
-	}).Info("Received request")
+	GUIDID := log.Fields{"GUID": id.GetGuid(), "ID": id.GetId()}
+	log.WithFields(GUIDID).Info("Received request")
 
-	if id.GetId() <= 0 {
-		log.WithField("GUID", id.GetGuid()).Info("Not Found")
+	realID, err := strconv.ParseInt(id.GetId(), 10, 64)
+
+	if realID <= 0 || err != nil {
+		log.WithFields(GUIDID).Info("Not Found")
 		return &userGen.Profile{}, grpc.Errorf(codes.NotFound, "Not Found")
 	}
 
-	log.WithField("GUID", id.GetGuid()).Info("Searching for user in db")
+	log.WithFields(GUIDID).Info("Searching for user in db")
 
-	u := user.Users{ID: id.GetId()}
+	u := user.Users{ID: realID}
 	h, err := db.Engine.Get(&u)
 	if err != nil {
-		log.WithField("GUID", id.GetGuid()).Info("Internal DB Error")
+		log.WithFields(GUIDID).Info("Internal DB Error")
 		return &userGen.Profile{}, grpc.Errorf(codes.Internal, "%s", err.Error())
 	}
 
 	if h {
-		log.WithField("GUID", id.GetGuid()).Info("Found")
+		log.WithFields(GUIDID).Info("Found")
 		return &userGen.Profile{
-			Id:      u.ID,
+			Id:      fmt.Sprintf("%d", u.ID),
 			Email:   u.Email,
 			Balance: u.Balance,
 		}, nil
 	}
 
-	log.WithField("GUID", id.GetGuid()).Info("Not Found")
+	log.WithFields(GUIDID).Info("Not Found")
 	return &userGen.Profile{}, grpc.Errorf(codes.NotFound, "Not Found")
 }
 
@@ -81,7 +83,7 @@ func (s *userServer) CreateUser(ctx xContext.Context, c *userGen.Create) (*userG
 	affectedRows, err := db.Engine.InsertOne(&user)
 	if err == nil && affectedRows == 1 {
 		return &userGen.Profile{
-			Id:      user.ID,
+			Id:      fmt.Sprintf("%d", user.ID),
 			Email:   user.Email,
 			Balance: user.Balance,
 		}, nil
@@ -93,17 +95,19 @@ func (s *userServer) CreateUser(ctx xContext.Context, c *userGen.Create) (*userG
 
 func (s *userServer) VerifyUser(ctx xContext.Context,
 	v *userGen.Verify) (*userGen.Verified, error) {
-	GUIDID := log.Fields{"GUID": v.GetGuid(), "ID": v.Id.GetId()}
+	GUIDID := log.Fields{"GUID": v.GetGuid(), "ID": v.GetId()}
 	log.WithFields(GUIDID).Debug("Verifying User")
 
-	if v.Id.GetId() <= 0 {
+	realID, err := strconv.ParseInt(v.GetId(), 10, 64)
+
+	if realID <= 0 || err != nil {
 		log.WithFields(GUIDID).Info("Not Found")
 		return &userGen.Verified{CanUserFund: false},
 			grpc.Errorf(codes.NotFound, "Not Found")
 	}
 
 	u := &user.Users{
-		ID: v.Id.GetId(),
+		ID: realID,
 	}
 	exists, err := db.Engine.Get(u)
 	if err != nil {

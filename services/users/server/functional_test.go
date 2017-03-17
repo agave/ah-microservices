@@ -55,9 +55,9 @@ func (s *ServerFunctionalSuite) TestGetUser() {
 
 	tc := testCases{
 		Ins: []*userGen.Id{
-			&userGen.Id{Guid: "1", Id: 1},     // happy
-			&userGen.Id{Guid: "2", Id: 10000}, // not found
-			&userGen.Id{Guid: "3", Id: -99999},
+			&userGen.Id{Guid: "1", Id: "1"},     // happy
+			&userGen.Id{Guid: "2", Id: "10000"}, // not found
+			&userGen.Id{Guid: "3", Id: "-99999"},
 		},
 		Outs: []codes.Code{
 			codes.OK,
