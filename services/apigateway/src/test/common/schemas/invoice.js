@@ -4,14 +4,14 @@ module.exports = {
   properties: {
     id: {
       required: true,
-      type: 'integer'
+      type: 'string'
     },
     provider_id: {
       required: true,
-      type: 'integer'
+      type: 'string'
     },
     investor_id: {
-      type: 'integer'
+      type: 'string'
     },
     amount: {
       required: true,

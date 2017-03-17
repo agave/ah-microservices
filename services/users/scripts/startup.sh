@@ -1,3 +1,3 @@
 #!/bin/bash
 
-/bin/torus -e staging -s users -- ./users
+/go/bin/torus run -o agavelab -p ah-microservices -e staging -s users -- ./users

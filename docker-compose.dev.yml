@@ -22,3 +22,7 @@ services:
       # prevent mounting node_modules to avoid cross-platform incompatibilities
       - /var/lib/app/node_modules
     entrypoint: /home/docker/startup.integration.sh
+  users:
+    entrypoint: /home/docker/startup.integration.sh
+  grpc-gateway:
+    entrypoint: /home/docker/startup.integration.sh

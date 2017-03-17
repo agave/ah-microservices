@@ -4,8 +4,8 @@ package util
 type DBOptions struct {
 	Host     string   `yaml:"Host"`
 	Port     int      `yaml:"Port"`
-	DBName   string   `yaml:"Name"`
-	Username string   `yaml:"User"`
+	DBName   string   `yaml:"DBName"`
+	Username string   `yaml:"Username"`
 	Password string   `yaml:"Password"`
 	Options  []string `yaml:"Options"`
 }

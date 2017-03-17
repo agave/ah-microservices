@@ -1,0 +1,4 @@
+Port: 8000
+apigatewayPort: 80
+apigatewayHost: "apigateway"
+swaggerPath: "./api/swagger/"

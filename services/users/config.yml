@@ -6,8 +6,8 @@ ConsumerGroupID: "consumer-users"
 DB:
   Host: "db"
   Port: 5432
-  Name: "users"
-  User: "postgres"
+  DBName: "users"
+  Username: "postgres"
   Password: "postgres"
   Options:
     - "sslmode=disable"

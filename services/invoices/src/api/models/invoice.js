@@ -4,8 +4,8 @@ const Invoice = {
       const { id, provider_id, investor_id, amount, status, created_at, updated_at } = this;
 
       const summary = {
-        id,
-        provider_id,
+        id: String(id),
+        provider_id: String(provider_id),
         amount,
         status,
         created_at: created_at.toString(),
@@ -13,7 +13,7 @@ const Invoice = {
       };
 
       if (investor_id) {
-        summary.investor_id = investor_id;
+        summary.investor_id = String(investor_id);
       }
 
       return summary;

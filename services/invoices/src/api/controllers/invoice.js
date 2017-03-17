@@ -75,7 +75,7 @@ class InvoiceController {
       if (!invoiceInstance) {
         throw new Error('Invoice not found');
       }
-      if (invoiceInstance.provider_id === investor_id) {
+      if (invoiceInstance.provider_id === parseInt(investor_id, 10)) {
         throw new Error('Provider can\'t fund his own invoice');
       }
       invoice = invoiceInstance;

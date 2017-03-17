@@ -1,0 +1,22 @@
+package: github.com/agave/ah-microservices/services/grpc-gateway
+import:
+- package: google.golang.org/grpc
+  version: ~1.0.5
+  subpackages:
+  - codes
+  - grpclog
+- package: github.com/stretchr/testify
+  version: v1.1.4
+- package: github.com/grpc-ecosystem/grpc-gateway
+  version: ~1.1.0
+  subpackages:
+  - runtime
+  - third_party/googleapis/google/api
+  - utilities
+- package: golang.org/x/net
+  subpackages:
+  - context
+- package: github.com/golang/protobuf
+  subpackages:
+  - proto
+- package: github.com/gypsydiver/go-config
