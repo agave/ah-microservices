@@ -23,6 +23,11 @@ func (s *userServer) GetUser(ctx xContext.Context, id *userGen.Id) (*userGen.Pro
 		"GUID": id.GetGuid(), "data": id.String(),
 	}).Info("Received request")
 
+	if id.GetId() <= 0 {
+		log.WithField("GUID", id.GetGuid()).Info("Not Found")
+		return &userGen.Profile{}, grpc.Errorf(codes.NotFound, "Not Found")
+	}
+
 	log.WithField("GUID", id.GetGuid()).Info("Searching for user in db")
 
 	u := user.Users{ID: id.GetId()}
@@ -34,8 +39,11 @@ func (s *userServer) GetUser(ctx xContext.Context, id *userGen.Id) (*userGen.Pro
 
 	if h {
 		log.WithField("GUID", id.GetGuid()).Info("Found")
-		p := userGen.Profile(u)
-		return &p, nil
+		return &userGen.Profile{
+			Id:      u.ID,
+			Email:   u.Email,
+			Balance: u.Balance,
+		}, nil
 	}
 
 	log.WithField("GUID", id.GetGuid()).Info("Not Found")
@@ -72,8 +80,11 @@ func (s *userServer) CreateUser(ctx xContext.Context, c *userGen.Create) (*userG
 	// create user in db
 	affectedRows, err := db.Engine.InsertOne(&user)
 	if err == nil && affectedRows == 1 {
-		p := userGen.Profile(user)
-		return &p, nil
+		return &userGen.Profile{
+			Id:      user.ID,
+			Email:   user.Email,
+			Balance: user.Balance,
+		}, nil
 	}
 
 	return &userGen.Profile{},
@@ -82,8 +93,14 @@ func (s *userServer) CreateUser(ctx xContext.Context, c *userGen.Create) (*userG
 
 func (s *userServer) VerifyUser(ctx xContext.Context,
 	v *userGen.Verify) (*userGen.Verified, error) {
-	GUIDID := log.Fields{"GUID": v.Id.GetGuid(), "ID": v.Id.GetId()}
+	GUIDID := log.Fields{"GUID": v.GetGuid(), "ID": v.Id.GetId()}
 	log.WithFields(GUIDID).Debug("Verifying User")
+
+	if v.Id.GetId() <= 0 {
+		log.WithFields(GUIDID).Info("Not Found")
+		return &userGen.Verified{CanUserFund: false},
+			grpc.Errorf(codes.NotFound, "Not Found")
+	}
 
 	u := &user.Users{
 		ID: v.Id.GetId(),
@@ -91,7 +108,7 @@ func (s *userServer) VerifyUser(ctx xContext.Context,
 	exists, err := db.Engine.Get(u)
 	if err != nil {
 		log.WithFields(log.Fields{
-			"GUID": v.Id.GetGuid(), "error": err.Error(),
+			"GUID": v.GetGuid(), "error": err.Error(),
 		}).Info("Unable to get user")
 		return &userGen.Verified{CanUserFund: false},
 			grpc.Errorf(codes.Unknown, "%v", err)

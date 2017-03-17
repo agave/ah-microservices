@@ -70,7 +70,7 @@ func (s *ServerFunctionalSuite) TestGetUser() {
 		p, err := grpcClient.GetUser(context.TODO(), v)
 		s.A.Equal(tc.Outs[i], grpc.Code(err), "GetUser should return expected error")
 		if tc.Outs[i] == codes.OK {
-			s.A.Equal(v.GetId(), p.GetID(), "Should return same id")
+			s.A.Equal(v.GetId(), p.GetId(), "Should return same id")
 			s.A.NotEmpty(p.GetEmail(), "Email shouldn't be empty")
 		}
 	}
