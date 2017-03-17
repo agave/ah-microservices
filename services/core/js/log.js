@@ -10,7 +10,17 @@ class Log {
           handleException: true,
           json: false,
           colorize: true,
-          timestamp: true
+          timestamp: true,
+          formatter: options => {
+            const info = {
+              level: options.level.toUpperCase(),
+              data: options.meta
+            };
+
+            info.data.timestamp = new Date().getTime();
+
+            return JSON.stringify(info);
+          }
         })
       ],
       exitOnError: false
@@ -34,16 +44,16 @@ class Log {
 
   error(e, guid = '', extraData = {}) {
     const obj = {
-      msg: e.message,
       guid,
+      msg: e.message,
       stack: e.stack,
-      extraData: JSON.stringify(extraData)
+      data: JSON.stringify(extraData)
     };
 
     this.log.error(obj);
   }
 
-  warn(msg, data = {}, guid = '') {
+  warn(msg, data = '', guid = '') {
     const obj = {
       guid,
       msg,

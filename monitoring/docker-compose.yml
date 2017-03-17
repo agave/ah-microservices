@@ -1,0 +1,143 @@
+version: '2'
+
+services:
+
+  # Runs on your node(s) and forwards all logs to Logstash.
+  logspout:
+    image: bekt/logspout-logstash
+    restart: on-failure
+    links:
+      - logstash
+    environment:
+      ROUTE_URIS: logstash+tcp://logstash:5000
+      KIBANA: ignore
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      container_group: monitoring
+
+  # Aggregates logs and forwards them to Elasticsearch.
+  logstash:
+    build:
+      context: ./
+      dockerfile: ./logstash/Dockerfile
+    image: agavelab/logstash
+    links:
+      - elasticsearch
+    restart: always
+    labels:
+      container_group: monitoring
+
+  # Logstash configs can be a hassle. Run 'docker-compose run --rm validate-logstash-config' in order to quickly check your logstash config.
+  validate-logstash-config:
+    image: logstash:2
+    volumes:
+      - ./logstash/config:/config
+    labels:
+      container_group: monitoring
+
+  # Storage and search backend. Gets all logs from Logstash and is the backend that Kibana runs on.
+  elasticsearch:
+    image: elasticsearch:5.1.1
+    expose:
+      - 9200
+    ports:
+      - 9200:9200
+    volumes:
+      - ./storage/elasticsearch:/usr/share/elasticsearch/data
+    restart: always
+    command: elasticsearch -Etransport.host=127.0.0.1
+    environment:
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    labels:
+      container_group: monitoring
+
+  # Pretty frontend to explore and check out all your logs.
+  kibana:
+    build:
+      context: ./
+      dockerfile: ./kibana/Dockerfile
+    image: agavelab/kibana
+    ports:
+      - 5601:5601
+    links:
+      - elasticsearch
+    restart: always
+    environment:
+      - NODE_OPTIONS=--max-old-space-size=200 # fixes memory leak (https://github.com/elastic/kibana/issues/5170)
+    labels:
+      container_group: monitoring
+
+  # Runs on your node(s) and forwards node(host) metrics to Prometheus.
+  nodeexporter:
+    image: prom/node-exporter
+    expose:
+      - 9100
+    restart: always
+    labels:
+      container_group: monitoring
+
+  # Runs on your node(s) and forwards container metrics to Prometheus.
+  cadvisor:
+    image: google/cadvisor
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: always
+    labels:
+      container_group: monitoring
+
+  # Storage and search backend. Gets all metrics from cAdvisor and Nodeexporter and is the backend that Grafana runs on.
+  prometheus:
+    build:
+      context: ./
+      dockerfile: ./prometheus/Dockerfile
+    image: agavelab/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./storage/prometheus:/prometheus
+    links:
+      - nodeexporter
+      - cadvisor
+      - alertmanager
+    restart: always
+    labels:
+      container_group: monitoring
+
+  # Pretty frontend to explore and check out all your metrics.
+  grafana:
+    build:
+      context: ./
+      dockerfile: ./grafana/Dockerfile
+    image: agavelab/grafana
+    ports:
+      - 4000:3000
+    restart: always
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    labels:
+      container_group: monitoring
+
+  # Alerting plugin wrapping Prometheus and taking care of your metric alerting needs.
+  alertmanager:
+    build:
+      context: ./
+      dockerfile: ./alertmanager/Dockerfile
+    image: agavelab/alertmanager
+    ports:
+      - 9093:9093
+    restart: always
+    volumes:
+      - ./storage/alertmanager/:/alertmanager
+    links:
+      - logstash
+    labels:
+      container_group: monitoring
