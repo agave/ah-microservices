@@ -6,6 +6,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/agave/ah-microservices/services/users/db"
 	"github.com/agave/ah-microservices/services/users/events"
+	// "github.com/agave/ah-microservices/services/users/events"
 	"github.com/agave/ah-microservices/services/users/server"
 	"github.com/agave/ah-microservices/services/users/user"
 	"github.com/agave/ah-microservices/services/users/util"
@@ -40,10 +41,14 @@ func dbClientInit() {
 		}).Fatalln("Error starting database")
 	}
 	// TODO Catch error/check if already present
-	db.Engine.CreateTables(&user.Users{}, &user.HeldBalance{})
+	err = db.Engine.CreateTables(&user.Users{}, &user.HeldBalance{})
+	if err != nil {
+		log.WithField("error", err).Fatal("Error creating tables in database")
+	}
 }
 
 func main() {
+	events.Init()
 	events.LaunchConsumer()
 	events.LaunchProducer()
 	server.StartServer()
