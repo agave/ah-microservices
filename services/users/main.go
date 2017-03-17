@@ -6,7 +6,6 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/agave/ah-microservices/services/users/db"
 	"github.com/agave/ah-microservices/services/users/events"
-	// "github.com/agave/ah-microservices/services/users/events"
 	"github.com/agave/ah-microservices/services/users/server"
 	"github.com/agave/ah-microservices/services/users/user"
 	"github.com/agave/ah-microservices/services/users/util"
