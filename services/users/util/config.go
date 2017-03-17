@@ -2,12 +2,12 @@ package util
 
 // DBOptions holds database connection details
 type DBOptions struct {
-	Host     string   `yaml:"DBHost"`
-	Port     int      `yaml:"DBPort"`
-	DBName   string   `yaml:"DBName"`
-	Username string   `yaml:"DBUser"`
-	Password string   `yaml:"DBPassword"`
-	Options  []string `yaml:"DBOptions"`
+	Host     string   `yaml:"Host"`
+	Port     int      `yaml:"Port"`
+	DBName   string   `yaml:"Name"`
+	Username string   `yaml:"User"`
+	Password string   `yaml:"Password"`
+	Options  []string `yaml:"Options"`
 }
 
 // Configuration defines all runtime variables
