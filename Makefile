@@ -16,7 +16,7 @@ bash:
 
 # Test current build of a service
 test:
-	@docker-compose $(TEST_COMPOSE) -f $(CURRENT_DIRECTORY)/services/$(service)/docker-compose.test.yml run $(service)
+	@docker-compose $(TEST_COMPOSE) -f $(CURRENT_DIRECTORY)/services/$(service)/docker-compose.test.yml up $(service)
 	@docker-compose $(TEST_COMPOSE) down
 
 # Destroy test environment

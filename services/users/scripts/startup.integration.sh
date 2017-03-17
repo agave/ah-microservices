@@ -12,6 +12,6 @@ do
   sleep 5
 done
 
-export DB_DBNAME=users_test
+export DB_DBNAME="users_test"
 
 ./users
