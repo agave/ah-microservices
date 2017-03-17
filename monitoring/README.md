@@ -1,4 +1,4 @@
-#[Fondeo monitoring stack]
+#[Agavelab monitoring stack]
 
 ## Usage
 ```
