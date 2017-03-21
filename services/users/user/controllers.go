@@ -128,7 +128,6 @@ func funded(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
 			&Activity{invoice.ID, invoice.InvestorID}), nil
 	}
 
-	log.WithField("Event", pe).Fatalln("There is a bug in the funded controller, execution shouldn't reach this point")
 	return nil, nil
 }
 
