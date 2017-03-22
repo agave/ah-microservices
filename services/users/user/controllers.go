@@ -87,7 +87,7 @@ func pendingFund(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
 	if investor.Balance < invoice.Amount {
 		logEventAndOrError(nil, pe, "Insufficient Balance")
 		act := &Activity{
-			InvoiceID: fmt.Sprintf("%d", invoice.ID),
+			InvoiceID: invoice.ID,
 			UserID:    fmt.Sprintf("%d", investor.ID),
 		}
 		return eventBuilder("InsufficientBalance", pe.GUID,
@@ -104,7 +104,7 @@ func pendingFund(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
 	// success
 	if suc {
 		act := &Activity{
-			InvoiceID: fmt.Sprintf("%d", invoice.ID),
+			InvoiceID: invoice.ID,
 			UserID:    fmt.Sprintf("%d", investor.ID),
 		}
 		return eventBuilder("BalanceReserved", pe.GUID,
