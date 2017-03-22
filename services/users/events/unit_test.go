@@ -84,5 +84,6 @@ func (s *EventsUnitSuite) TestProducer() {
 
 	err = producer.Outbound(suc)
 	time.Sleep(time.Second)
+	s.A.Nil(err)
 	s.A.Equal(int64(1), producer.Errors)
 }
