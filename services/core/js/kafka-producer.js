@@ -31,6 +31,8 @@ class KafkaProducer {
   }
 
   produce({ topic = this.topicName, message, key }) {
+    message.body = JSON.stringify(message.body);
+
     return new Promise((resolve, reject) => {
       try {
         this.producer.produce(

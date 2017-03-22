@@ -1,7 +1,9 @@
 package user
 
 import (
+	"encoding/json"
 	"os"
+	"strconv"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/agave/ah-microservices/services/users/db"
@@ -52,8 +54,8 @@ func (s *UserFunctionalSuite) TearDownSuite() {
 
 func (s *UserFunctionalSuite) TestCheckHeldBalance() {
 	tc := &InvoiceUpdated{
-		InvestorID: 123,
-		ID:         3,
+		InvestorID: "123",
+		ID:         "3",
 		Amount:     456.66,
 	}
 
@@ -61,10 +63,12 @@ func (s *UserFunctionalSuite) TestCheckHeldBalance() {
 	s.A.Nil(err)
 	s.A.False(e)
 
+	uid, _ := strconv.ParseInt(tc.InvestorID, 10, 64)
+	invid, _ := strconv.ParseInt(tc.ID, 10, 64)
 	hb := HeldBalance{
-		UserID:    tc.InvestorID,
+		UserID:    uid,
 		Amount:    tc.Amount,
-		InvoiceID: tc.ID,
+		InvoiceID: invid,
 	}
 
 	a, err := db.Engine.Insert(&hb)
@@ -82,8 +86,8 @@ func (s *UserFunctionalSuite) TestHoldBalance() {
 	defer session.Close()
 
 	tc := InvoiceUpdated{
-		InvestorID: int64(987),
-		ID:         int64(99),
+		InvestorID: "987",
+		ID:         "99",
 		Amount:     6.66,
 	}
 
@@ -105,4 +109,68 @@ func (s *UserFunctionalSuite) TestHoldBalance() {
 	s.A.Nil(err)
 	s.A.True(e)
 	s.A.Equal(usr.Balance, uss.Balance)
+}
+
+func (s *UserFunctionalSuite) TestSortConsumedMessage() {
+	pe := &Event{
+		Type: "ReservationNotFound",
+	}
+	a, err := SortConsumedMessage(pe)
+	s.A.Nil(a)
+	s.A.Nil(err)
+
+	pe = &Event{
+		Type: "NoHandler",
+	}
+	a, err = SortConsumedMessage(pe)
+	s.A.Nil(a)
+	s.A.Nil(err)
+}
+
+func (s *UserFunctionalSuite) TestHandleInvoiceUpdated() {
+	invoice := &InvoiceUpdated{
+		ID:         "1",
+		InvestorID: "2",
+		Amount:     10.66,
+		Status:     "not_implemented",
+	}
+
+	b, _ := json.Marshal(invoice)
+	pe := &Event{
+		Type: "InvoiceUpdated",
+		GUID: "aguid",
+		Body: string(b),
+		Key:  "2",
+	}
+
+	a, err := SortConsumedMessage(pe)
+	s.A.Nil(err)
+	s.A.Nil(a)
+
+	pe.Body = "not valid json"
+	a, err = SortConsumedMessage(pe)
+	s.A.Nil(err)
+	s.A.Nil(a)
+
+	invoice = &InvoiceUpdated{
+		ID:         "1",
+		InvestorID: "2",
+		Amount:     10.66,
+		Status:     "pending_fund",
+	}
+
+	b, _ = json.Marshal(invoice)
+	pe.Body = string(b)
+
+	a, err = SortConsumedMessage(pe)
+	s.A.Nil(err)
+	s.A.NotNil(a)
+
+	invoice.Status = "funded"
+	b, _ = json.Marshal(invoice)
+	pe.Body = string(b)
+
+	a, err = SortConsumedMessage(pe)
+	s.A.Nil(err)
+	s.A.Nil(a)
 }

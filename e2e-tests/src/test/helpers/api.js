@@ -1,35 +1,35 @@
 const axios = require('axios');
 
 class Api {
-  constructor(host = 'grpc-gateway', prefix = '/api/') {
+  constructor(host = 'http://grpc-gateway', prefix = '/api/') {
     this.client = axios.create({
-      baseUrl: host + prefix,
+      baseURL: host + prefix,
       timeout: 1000
     });
   }
 
   createInvoice(data) {
-    return this.request('post', 'v1/invoice', data);
+    return this.client.post('v1/invoice', data);
   }
 
   getInvoice(data) {
-    return this.request('get', `v1/invoice/${data.id}`);
+    return this.client.get(`v1/invoice/${data.id}`);
   }
 
   fundInvoice(data) {
-    return this.request('post', 'v1/invoice/fund', data);
+    return this.client.post('v1/invoice/fund', data);
   }
 
   createUser(data) {
-    return this.request('post', 'v1/users', data);
+    return this.client.post('v1/users', data);
   }
 
   getUser(data) {
-    return this.request('get', `v1/users/${data.id}`);
+    return this.client.get(`v1/users/${data.id}`);
   }
 
   verifyUserBalance(data) {
-    return this.request('post', 'v1/user/verify', data);
+    return this.client.post('v1/users/verify', data);
   }
 }
 

@@ -10,9 +10,9 @@ type Event struct {
 
 // InvoiceUpdated describes a kafka event produced by the invoices service
 type InvoiceUpdated struct {
-	ID         int64   `json:"id"`
-	ProviderID int64   `json:"provider_id"`
-	InvestorID int64   `json:"investor_id"`
+	ID         string  `json:"id"`
+	ProviderID string  `json:"provider_id"`
+	InvestorID string  `json:"investor_id"`
 	Amount     float64 `json:"amount"`
 	Status     string  `json:"status"`
 	CreatedAt  string  `json:"created_at"`
@@ -21,6 +21,6 @@ type InvoiceUpdated struct {
 
 // Activity is used to produce event relevant to users
 type Activity struct {
-	InvoiceID int64 `json:"invoice_id"`
-	UserID    int64 `json:"user_id"`
+	InvoiceID string `json:"invoice_id"`
+	UserID    string `json:"user_id"`
 }

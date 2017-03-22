@@ -2,6 +2,7 @@ package events
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -65,7 +66,7 @@ func (s *EventsFunctionalSuite) TearDownSuite() {
 	db.Engine.Close()
 }
 
-func (s *EventsFunctionalSuite) TestAProducer() {
+func (s *EventsFunctionalSuite) TestProducer() {
 	Init()
 	LaunchProducer()
 	defer Producer.AsyncProducer.AsyncClose()
@@ -84,7 +85,7 @@ func (s *EventsFunctionalSuite) TestAProducer() {
 	s.A.Equal(int64(1), Producer.Errors, "Producing message should error")
 }
 
-func (s *EventsFunctionalSuite) TestBConsumer() {
+func (s *EventsFunctionalSuite) TestConsumer() {
 	Init()
 	defer KafkaClient.Close()
 
@@ -97,9 +98,9 @@ func (s *EventsFunctionalSuite) TestBConsumer() {
 	defer Producer.AsyncProducer.AsyncClose()
 
 	inv := user.InvoiceUpdated{
-		InvestorID: s.UserFixtures[1].ID,
+		InvestorID: fmt.Sprintf("%d", s.UserFixtures[1].ID),
 		Amount:     20.05,
-		ID:         5,
+		ID:         "5",
 		Status:     "pending_fund",
 		CreatedAt:  "today",
 		UpdatedAt:  "never",
