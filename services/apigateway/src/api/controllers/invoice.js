@@ -50,6 +50,7 @@ class InvoiceController {
 
     return invoiceClient.fundInvoice({
       guid: guid,
+      id: request.id,
       investor_id: request.investor_id
     })
     .then(invoice => {

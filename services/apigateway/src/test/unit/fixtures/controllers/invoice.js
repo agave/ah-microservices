@@ -48,6 +48,7 @@ module.exports = {
     },
     fundRequestData: {
       guid,
+      id: invoice.id,
       investor_id: invoice.investor_id
     },
     invoice,

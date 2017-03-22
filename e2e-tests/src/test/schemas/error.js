@@ -3,9 +3,13 @@ module.exports = function(message) {
     required: true,
     type: 'object',
     properties: {
-      message: {
+      Error: {
         required: true,
         enum: [ message ]
+      },
+      Code: {
+        required: true,
+        type: 'number'
       }
     }
   };

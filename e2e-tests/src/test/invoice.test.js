@@ -1,8 +1,9 @@
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
+const should = chai.should();
 const API = require('./helpers/api');
 const validate = require('./helpers/validate');
-const delay = require('./helpers/promise-delay');
+const waitForEvent = require('./helpers/wait-event');
 
 const invoiceFixtures = require('./fixtures/invoice');
 const userFixtures = require('./fixtures/user');
@@ -10,7 +11,6 @@ const userFixtures = require('./fixtures/user');
 const errorSchema = require('./schemas/error');
 const invoiceSchema = require('./schemas/invoice');
 
-chai.should();
 chai.use(chaiAsPromised);
 
 describe('Invoice tests', function() {
@@ -19,12 +19,21 @@ describe('Invoice tests', function() {
 
   describe('createInvoice', () => {
     it('should create an invoice successfully', () => {
-      return API.createInvoice(invoiceFixtures.validInvoice())
+      const request = invoiceFixtures.createInvoiceRequest();
+
+      return API.createInvoice(request)
       .should.be.fulfilled
-      .then(validate(invoiceSchema))
+      .then(response => {
+        response.status.should.be.equal(200);
+        return validate(invoiceSchema)(response.data);
+      })
       .then(invoice => {
         createdInvoice = invoice;
-        createdInvoice.should.be.eql(invoiceFixtures.expectedCreatedInvoice());
+
+        invoice.provider_id.should.be.equal(request.provider_id);
+        invoice.amount.should.be.equal(request.amount);
+        invoice.status.should.be.equal('new');
+        should.not.exist(invoice.investor_id);
       });
     });
   });
@@ -34,12 +43,20 @@ describe('Invoice tests', function() {
     it('should return error if invoice does not exists', function() {
       return API.getInvoice(invoiceFixtures.invalidInvoice())
       .should.be.rejected
+      .then(err => {
+        err.response.status.should.be.equal(500); // TODO: this should actually be 404
+        return err.response.data;
+      })
       .then(validate(errorSchema('Invoice not found')));
     });
 
     it('should return invoice', function() {
       return API.getInvoice(createdInvoice)
       .should.be.fulfilled
+      .then(response => {
+        response.status.should.be.equal(200);
+        return validate(invoiceSchema)(response.data);
+      })
       .then(validate(invoiceSchema))
       .then(invoice => {
         invoice.should.be.eql(createdInvoice);
@@ -50,61 +67,70 @@ describe('Invoice tests', function() {
   describe('fundInvoice', () => {
 
     it('should reject if invoice doesn\'t exist', () => {
-      return API.fundInvoice(invoiceFixtures.invalidInvoice())
+      return API.fundInvoice(invoiceFixtures.invalidFundInvoiceRequest())
       .should.be.rejected
+      .then(err => {
+        err.response.status.should.be.equal(500); // TODO: this should actually be 404
+        return err.response.data;
+      })
       .then(validate(errorSchema('Invoice not found')));
     });
 
     it('should reject if provider tries to fund his own invoice', () => {
-      const fundRequest = {};
-
-      Object.assign(fundRequest, createdInvoice);
-      fundRequest.investor_id = createdInvoice.provider_id;
-
-      return API.fundInvoice(fundRequest)
+      return API.fundInvoice(invoiceFixtures.sameUserFundInvoiceRequest(createdInvoice.id))
       .should.be.rejected
+      .then(err => {
+        err.response.status.should.be.equal(500); // TODO: this should actually be 404
+        return err.response.data;
+      })
       .then(validate(errorSchema('Provider can\'t fund his own invoice')));
     });
 
-    it('should reject if investor doesn\'t have enough money', () => {
-      const fundRequest = {};
+    it('should revert invoice status to new if investor doesn\'t have enough money', () => {
+      return API.createUser(userFixtures.createUserWithoutMoneyRequest())
+      .then(({ data }) => {
+        const request = invoiceFixtures.validFundInvoiceRequest(createdInvoice.id);
 
-      Object.assign(fundRequest, createdInvoice);
-      fundRequest.investor_id = userFixtures.investorWithoutMoney();
+        request.investor_id = data.id;
 
-      return API.fundInvoice(fundRequest)
-      .should.be.rejected
-      .then(validate(errorSchema('Investor doesn\'t have enough money')));
+        return API.fundInvoice(request);
+      })
+      .should.be.fulfilled
+      .then(({ data }) => data.status.should.be.equal('pending_fund'))
+      .then(waitForEvent())
+      .then(() => API.getInvoice(createdInvoice))
+      .then(({ data }) => data.status.should.be.equal('new'));
     });
 
-    it('should reject if investor doesn\'t exist', () => {
-      const fundRequest = {};
-
-      Object.assign(fundRequest, createdInvoice);
-      fundRequest.investor_id = userFixtures.invalidInvestor();
-
-      return API.fundInvoice(fundRequest)
-      .should.be.rejected
-      .then(validate(errorSchema('Investor not found')));
+    it('should revert invoice status to new if investor doesn\'t exist', () => {
+      return API.fundInvoice(invoiceFixtures.invalidUserFundInvoiceRequest(createdInvoice.id))
+      .should.be.fulfilled
+      .then(({ data }) => data.status.should.be.equal('pending_fund'))
+      .then(waitForEvent())
+      .then(() => API.getInvoice(createdInvoice))
+      .then(({ data }) => data.status.should.be.equal('new'));
     });
 
     it('should fund an invoice successfully', () => {
-      const fundRequest = {};
-      const investor = userFixtures.investorWithMoney();
+      let investor;
 
-      Object.assign(fundRequest, createdInvoice);
-      fundRequest.investor_id = investor.id;
+      return API.createUser(userFixtures.createUserWithMoneyRequest())
+      .then(({ data }) => {
+        const request = invoiceFixtures.validFundInvoiceRequest(createdInvoice.id);
 
-      return API.fundInvoice(fundRequest)
+        investor = data;
+        request.investor_id = data.id;
+
+        return API.fundInvoice(request);
+      })
       .should.be.fulfilled
-      .then(validate(invoiceSchema))
-      .then(invoice => invoice.should.be.eql(invoiceFixtures.expectedPendingFundInvoice()))
-      .then(delay(3000))
+      .then(({ data }) => data.status.should.be.equal('pending_fund'))
+      .then(waitForEvent())
       .then(() => API.getInvoice(createdInvoice))
-      .then(invoice => invoice.should.be.eql(invoiceFixtures.expectedPendingFundInvoice()))
+      .then(({ data }) => data.status.should.be.equal('funded'))
       .then(() => API.getUser(investor))
-      .then(updatedInvestor => {
-        updatedInvestor.balance.should.be.equal(investor.balance - createdInvoice.amount);
+      .then(({ data }) => {
+        data.balance.should.be.equal(investor.balance - createdInvoice.amount);
       });
     });
   });

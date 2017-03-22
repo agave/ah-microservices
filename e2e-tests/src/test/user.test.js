@@ -18,12 +18,18 @@ describe('User tests', function() {
 
   describe('createUser', () => {
     it('should create a user successfully', () => {
-      return API.createUser(userFixtures.validUser())
+      const user = userFixtures.createUserWithMoneyRequest();
+
+      return API.createUser(user)
       .should.be.fulfilled
-      .then(validate(userSchema))
-      .then(user => {
-        createdUser = user;
-        createdUser.should.be.eql(userFixtures.expectedCreatedUser());
+      .then(response => {
+        response.status.should.be.equal(200);
+        return validate(userSchema)(response.data);
+      })
+      .then(result => {
+        createdUser = result;
+        createdUser.email.should.be.equal(user.email);
+        createdUser.balance.should.be.equal(user.balance);
       });
     });
   });
@@ -33,13 +39,20 @@ describe('User tests', function() {
     it('should return error if user does not exists', function() {
       return API.getUser(userFixtures.invalidUser())
       .should.be.rejected
-      .then(validate(errorSchema('User not found')));
+      .then(err => {
+        err.response.status.should.be.equal(404);
+        return err.response.data;
+      })
+      .then(validate(errorSchema('Not Found')));
     });
 
     it('should return a user', function() {
       return API.getUser(createdUser)
       .should.be.fulfilled
-      .then(validate(userSchema))
+      .then(response => {
+        response.status.should.be.equal(200);
+        return validate(userSchema)(response.data);
+      })
       .then(user => {
         user.should.be.eql(createdUser);
       });
@@ -49,15 +62,22 @@ describe('User tests', function() {
   describe('verifyUserBalance', () => {
 
     it('should reject if user doesn\'t exist', () => {
-      return API.verifyUserBalance(userFixtures.invalidUser())
+      return API.verifyUserBalance(userFixtures.invalidVerifyUserRequest())
       .should.be.rejected
-      .then(validate(errorSchema('User not found')));
+      .then(err => {
+        err.response.status.should.be.equal(404);
+        return err.response.data;
+      })
+      .then(validate(errorSchema('Not Found')));
     });
 
     it('should return status', () => {
-      return API.verifyUserBalance(createdUser)
+      return API.verifyUserBalance(userFixtures.validVerifyUserRequest(createdUser.id))
       .should.be.fulfilled
-      .then(validate(verifyStatusSchema));
+      .then(response => {
+        response.status.should.be.equal(200);
+        return validate(verifyStatusSchema)(response.data);
+      });
     });
   });
 });

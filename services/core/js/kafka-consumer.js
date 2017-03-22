@@ -41,6 +41,7 @@ class KafkaConsumer {
 
   dataHandler(data, handler) {
     data.value = JSON.parse(data.value.toString());
+    data.value.body = JSON.parse(data.value.body);
 
     return handler.handle(data)
     .then(() => this.commit(data))
