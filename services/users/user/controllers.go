@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/agave/ah-microservices/services/users/db"
@@ -69,7 +70,8 @@ func handleInvoiceUpdated(pe *Event) (*Event, error) {
 
 func pendingFund(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
 	// check InvestorID exists
-	investor := &Users{ID: invoice.InvestorID}
+	uid, _ := strconv.ParseInt(invoice.InvestorID, 10, 64)
+	investor := &Users{ID: uid}
 	exists, err := db.Engine.Get(investor)
 	if err != nil {
 		logEventAndOrError(err, pe, "DB error while looking for investor")
@@ -84,8 +86,12 @@ func pendingFund(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
 	// check balance
 	if investor.Balance < invoice.Amount {
 		logEventAndOrError(nil, pe, "Insufficient Balance")
+		act := &Activity{
+			InvoiceID: fmt.Sprintf("%d", invoice.ID),
+			UserID:    fmt.Sprintf("%d", investor.ID),
+		}
 		return eventBuilder("InsufficientBalance", pe.GUID,
-			fmt.Sprint(investor.ID), &Activity{invoice.ID, investor.ID}), nil
+			fmt.Sprint(investor.ID), act), nil
 	}
 	// hold balance
 	session.NewSession()
@@ -97,8 +103,12 @@ func pendingFund(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
 	}
 	// success
 	if suc {
+		act := &Activity{
+			InvoiceID: fmt.Sprintf("%d", invoice.ID),
+			UserID:    fmt.Sprintf("%d", investor.ID),
+		}
 		return eventBuilder("BalanceReserved", pe.GUID,
-			fmt.Sprint(investor.ID), &Activity{invoice.ID, investor.ID}), nil
+			fmt.Sprint(investor.ID), act), nil
 	}
 	return nil, nil
 }
@@ -110,9 +120,11 @@ func funded(invoice *InvoiceUpdated, pe *Event) (*Event, error) {
 		return nil, err
 	}
 	if held {
+		uid, _ := strconv.ParseInt(invoice.InvestorID, 10, 64)
+		invid, _ := strconv.ParseInt(invoice.ID, 10, 64)
 		aff, err := db.Engine.Delete(&HeldBalance{
-			UserID:    invoice.InvestorID,
-			InvoiceID: invoice.ID,
+			UserID:    uid,
+			InvoiceID: invid,
 			Amount:    invoice.Amount,
 		})
 
@@ -142,10 +154,12 @@ func holdBalance(invoice *InvoiceUpdated, u *Users) (bool, error) {
 		return true, err
 	}
 
+	uid, _ := strconv.ParseInt(invoice.InvestorID, 10, 64)
+	invid, _ := strconv.ParseInt(invoice.ID, 10, 64)
 	// hold_balance create
 	hb := HeldBalance{
-		UserID:    invoice.InvestorID,
-		InvoiceID: invoice.ID,
+		UserID:    uid,
+		InvoiceID: invid,
 		Amount:    invoice.Amount,
 	}
 
@@ -174,9 +188,11 @@ func holdBalance(invoice *InvoiceUpdated, u *Users) (bool, error) {
 }
 
 func checkHeldBalance(invoice *InvoiceUpdated) (bool, error) {
+	uid, _ := strconv.ParseInt(invoice.InvestorID, 10, 64)
+	invid, _ := strconv.ParseInt(invoice.ID, 10, 64)
 	hb := HeldBalance{
-		UserID:    invoice.InvestorID,
-		InvoiceID: invoice.ID,
+		UserID:    uid,
+		InvoiceID: invid,
 		Amount:    invoice.Amount,
 	}
 	return db.Engine.Get(&hb)

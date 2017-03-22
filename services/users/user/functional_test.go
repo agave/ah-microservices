@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/json"
 	"os"
+	"strconv"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/agave/ah-microservices/services/users/db"
@@ -53,8 +54,8 @@ func (s *UserFunctionalSuite) TearDownSuite() {
 
 func (s *UserFunctionalSuite) TestCheckHeldBalance() {
 	tc := &InvoiceUpdated{
-		InvestorID: 123,
-		ID:         3,
+		InvestorID: "123",
+		ID:         "3",
 		Amount:     456.66,
 	}
 
@@ -62,10 +63,12 @@ func (s *UserFunctionalSuite) TestCheckHeldBalance() {
 	s.A.Nil(err)
 	s.A.False(e)
 
+	uid, _ := strconv.ParseInt(tc.InvestorID, 10, 64)
+	invid, _ := strconv.ParseInt(tc.ID, 10, 64)
 	hb := HeldBalance{
-		UserID:    tc.InvestorID,
+		UserID:    uid,
 		Amount:    tc.Amount,
-		InvoiceID: tc.ID,
+		InvoiceID: invid,
 	}
 
 	a, err := db.Engine.Insert(&hb)
@@ -83,8 +86,8 @@ func (s *UserFunctionalSuite) TestHoldBalance() {
 	defer session.Close()
 
 	tc := InvoiceUpdated{
-		InvestorID: int64(987),
-		ID:         int64(99),
+		InvestorID: "987",
+		ID:         "99",
 		Amount:     6.66,
 	}
 
@@ -126,8 +129,8 @@ func (s *UserFunctionalSuite) TestSortConsumedMessage() {
 
 func (s *UserFunctionalSuite) TestHandleInvoiceUpdated() {
 	invoice := &InvoiceUpdated{
-		ID:         int64(1),
-		InvestorID: int64(2),
+		ID:         "1",
+		InvestorID: "2",
 		Amount:     10.66,
 		Status:     "not_implemented",
 	}
@@ -150,8 +153,8 @@ func (s *UserFunctionalSuite) TestHandleInvoiceUpdated() {
 	s.A.Nil(a)
 
 	invoice = &InvoiceUpdated{
-		ID:         int64(1),
-		InvestorID: int64(2),
+		ID:         "1",
+		InvestorID: "2",
 		Amount:     10.66,
 		Status:     "pending_fund",
 	}
