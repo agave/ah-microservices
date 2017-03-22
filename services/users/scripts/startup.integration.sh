@@ -12,6 +12,9 @@ do
   sleep 5
 done
 
+# TODO: Wait until kafka is actually ready to accept connections
+sleep 10
+
 export DB_DBNAME="users_test"
 
 ./users
