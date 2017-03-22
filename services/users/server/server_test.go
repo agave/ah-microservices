@@ -23,9 +23,9 @@ var (
 func TestServer(t *testing.T) {
 	commonSetup()
 
-	t.Run("unit", func(t *testing.T) {
-		suite.Run(t, new(ServerUnitSuite))
-	})
+	// t.Run("unit", func(t *testing.T) {
+	// 	suite.Run(t, new(ServerUnitSuite))
+	// })
 
 	t.Run("functional", func(t *testing.T) {
 		suite.Run(t, new(ServerFunctionalSuite))

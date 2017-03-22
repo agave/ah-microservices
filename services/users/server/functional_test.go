@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -54,15 +55,19 @@ func (s *ServerFunctionalSuite) TearDownSuite() {
 }
 
 func (s *ServerFunctionalSuite) TestGetUser() {
+	db.Engine.CreateTables(user.Users{})
 	type testCases struct {
 		Ins  []*userGen.Id
 		Outs []codes.Code
 	}
 
+	h := &userGen.Create{Email: "admin@admin.com", Balance: 0}
+	p, _ := grpcClient.CreateUser(context.TODO(), h)
+
 	tc := testCases{
 		Ins: []*userGen.Id{
-			&userGen.Id{Guid: "1", Id: "1"},     // happy
-			&userGen.Id{Guid: "2", Id: "10000"}, // not found
+			&userGen.Id{Guid: "1", Id: p.GetId()}, // happy
+			&userGen.Id{Guid: "2", Id: "10000"},   // not found
 			&userGen.Id{Guid: "3", Id: "-99999"},
 		},
 		Outs: []codes.Code{
@@ -80,9 +85,16 @@ func (s *ServerFunctionalSuite) TestGetUser() {
 			s.A.NotEmpty(p.GetEmail(), "Email shouldn't be empty")
 		}
 	}
+
+	//trigger db error
+	db.Engine.DropTables(&user.Users{})
+	p, err := grpcClient.GetUser(context.TODO(), &userGen.Id{Id: "1"})
+	s.A.Nil(p)
+	s.A.Equal(codes.Internal, grpc.Code(err))
 }
 
 func (s *ServerFunctionalSuite) TestCreateUser() {
+	db.Engine.CreateTables(user.Users{})
 	type testCases struct {
 		Ins  []*userGen.Create
 		Outs []codes.Code
@@ -116,9 +128,20 @@ func (s *ServerFunctionalSuite) TestCreateUser() {
 			s.A.Equal(c.GetBalance(), p.GetBalance(), "Insert should return same Balance")
 		}
 	}
+
+	//trigger db error
+	db.Engine.DropTables(&user.Users{})
+	crt := &userGen.Create{
+		Email:   "not empty",
+		Balance: 100.00,
+	}
+	p, err := grpcClient.CreateUser(context.TODO(), crt)
+	s.A.Nil(p)
+	s.A.Equal(codes.Unknown, grpc.Code(err))
 }
 
 func (s *ServerFunctionalSuite) TestUpdateUser() {
+	db.Engine.CreateTables(user.Users{})
 	//insert fixtures
 	createFixture := &userGen.Create{
 		Email:   "user@domain.org",
@@ -196,4 +219,63 @@ func (s *ServerFunctionalSuite) TestUpdateUser() {
 	s.A.NotNil(err)
 	s.A.Equal(codes.Unknown, grpc.Code(err))
 	s.A.Nil(nu)
+}
+
+func (s *ServerFunctionalSuite) TestVerifyUser() {
+	db.Engine.CreateTables(&user.Users{})
+	// parse error
+	v := &userGen.Verify{
+		Guid: "aguid",
+		Id:   "fdgdfsg",
+	}
+
+	u, err := grpcClient.VerifyUser(context.TODO(), v)
+	s.A.False(u.GetCanUserFund())
+	s.A.Equal(codes.NotFound, grpc.Code(err))
+
+	//success
+	uss := &user.Users{ // user fixture
+		Email:   "user42@example.com",
+		Balance: 100.00,
+	}
+
+	db.Engine.InsertOne(uss)
+
+	v = &userGen.Verify{
+		Guid:   "another guid",
+		Id:     fmt.Sprintf("%d", uss.ID),
+		Amount: 50.00,
+	}
+
+	u, err = grpcClient.VerifyUser(context.TODO(), v)
+	s.A.True(u.GetCanUserFund())
+	s.A.Equal(codes.OK, grpc.Code(err))
+
+	//user can't fund
+	v = &userGen.Verify{
+		Guid:   "another guid",
+		Id:     fmt.Sprintf("%d", uss.ID),
+		Amount: 101.00,
+	}
+
+	u, err = grpcClient.VerifyUser(context.TODO(), v)
+	s.A.False(u.GetCanUserFund())
+	s.A.Equal(codes.OK, grpc.Code(err))
+
+	//user not found
+	v = &userGen.Verify{
+		Guid:   "another guid",
+		Id:     "23434234", //not in test db
+		Amount: 101.00,
+	}
+
+	u, err = grpcClient.VerifyUser(context.TODO(), v)
+	s.A.False(u.GetCanUserFund())
+	s.A.Equal(codes.NotFound, grpc.Code(err))
+
+	//db error
+	db.Engine.DropTables(&user.Users{})
+	u, err = grpcClient.VerifyUser(context.TODO(), v)
+	s.A.False(u.GetCanUserFund())
+	s.A.Equal(codes.Unknown, grpc.Code(err))
 }
