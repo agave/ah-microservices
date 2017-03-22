@@ -177,7 +177,7 @@ func (s *UserUnitSuite) TestHoldBalance() {
 
 func (s *UserUnitSuite) TestEventBuilder() {
 	c := &Activity{
-		InvoiceID: 1, UserID: 2,
+		InvoiceID: "1", UserID: "2",
 	}
 	e := eventBuilder("typ", "guid", "key", c)
 	s.A.Equal("typ", e.Type)
@@ -190,8 +190,8 @@ func (s *UserUnitSuite) TestEventBuilder() {
 func (s *UserUnitSuite) TestPendingFund() {
 	s.DB.FeatureFlag = true
 	invoice := &InvoiceUpdated{
-		ID:         1,
-		InvestorID: 2,
+		ID:         "1",
+		InvestorID: "2",
 		Amount:     10,
 		Status:     "pending_fund",
 	}
@@ -228,8 +228,8 @@ func (s *UserUnitSuite) TestPendingFund() {
 func (s *UserUnitSuite) TestFunded() {
 	s.DB.FeatureFlag = false
 	invoice := &InvoiceUpdated{
-		ID:         1,
-		InvestorID: 2,
+		ID:         "1",
+		InvestorID: "2",
 		Amount:     10,
 		Status:     "funded",
 	}

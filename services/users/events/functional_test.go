@@ -65,7 +65,7 @@ func (s *EventsFunctionalSuite) TearDownSuite() {
 	db.Engine.Close()
 }
 
-func (s *EventsFunctionalSuite) TestAProducer() {
+func (s *EventsFunctionalSuite) TestProducer() {
 	Init()
 	LaunchProducer()
 	defer Producer.AsyncProducer.AsyncClose()
@@ -84,7 +84,7 @@ func (s *EventsFunctionalSuite) TestAProducer() {
 	s.A.Equal(int64(1), Producer.Errors, "Producing message should error")
 }
 
-func (s *EventsFunctionalSuite) TestBConsumer() {
+func (s *EventsFunctionalSuite) TestConsumer() {
 	Init()
 	defer KafkaClient.Close()
 
