@@ -2,6 +2,7 @@ package events
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -97,9 +98,9 @@ func (s *EventsFunctionalSuite) TestConsumer() {
 	defer Producer.AsyncProducer.AsyncClose()
 
 	inv := user.InvoiceUpdated{
-		InvestorID: s.UserFixtures[1].ID,
+		InvestorID: fmt.Sprintf("%d", s.UserFixtures[1].ID),
 		Amount:     20.05,
-		ID:         5,
+		ID:         "5",
 		Status:     "pending_fund",
 		CreatedAt:  "today",
 		UpdatedAt:  "never",
