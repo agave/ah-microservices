@@ -39,7 +39,10 @@ func (s *EventConsumer) Listen() {
 		if m != nil {
 			event, err := parseEvent(m)
 			if err != nil {
-				//TODO do something
+				log.WithFields(log.Fields{
+					"error": err,
+					"event": m,
+				}).Info("Skipping event")
 				continue
 			}
 			produceEvent, err := user.SortConsumedMessage(event)

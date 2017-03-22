@@ -1,0 +1,5 @@
+version: '2'
+
+services:
+  grpc-gateway:
+    entrypoint: /home/docker/startup.dev.sh

@@ -1,12 +1,7 @@
 module.exports = {
   required: true,
   type: 'object',
-  additionalProperties: false,
   properties: {
-    count: {
-      required: true,
-      type: 'integer'
-    },
     id: {
       required: true,
       type: 'string'
@@ -15,13 +10,9 @@ module.exports = {
       required: true,
       type: 'string'
     },
-    name: {
+    balance: {
       required: true,
-      type: 'string'
-    },
-    role: {
-      required: true,
-      type: 'string'
+      type: 'number'
     }
   }
 };

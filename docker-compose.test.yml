@@ -5,3 +5,7 @@ services:
     entrypoint: /home/docker/startup.integration.sh
   invoices:
     entrypoint: /home/docker/startup.integration.sh
+  users:
+    entrypoint: /home/docker/startup.integration.sh
+  grpc-gateway:
+    entrypoint: /home/docker/startup.integration.sh

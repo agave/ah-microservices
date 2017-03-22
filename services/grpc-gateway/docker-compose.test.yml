@@ -1,0 +1,8 @@
+version: '2'
+
+services:
+  grpc-gateway:
+    entrypoint: /home/docker/startup.test.sh
+    volumes:
+      - ./services/grpc-gateway/unit_coverage:/go/src/github.com/agave/ah-microservices/services/grpc-gateway/unit_coverage
+      - ./services/grpc-gateway/functional_coverage:/go/src/github.com/agave/ah-microservices/services/grpc-gateway/functional_coverage

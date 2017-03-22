@@ -6,9 +6,11 @@ const port = process.env.PORT || 50051;
 
 // Protos
 const invoiceProto = grpc.load('/var/lib/core/protos/api/invoice.proto').invoice;
+const userProto = grpc.load('/var/lib/core/protos/api/user.proto').user;
 
 // GRPC Controllers
 const InvoiceController = require('./api/controllers/invoice');
+const UserController = require('./api/controllers/user');
 
 function waitForServerStart() {
   return new Promise((resolve) => {
@@ -23,6 +25,7 @@ function waitForServerStart() {
 
 function initGRPCServer() {
   server.addProtoService(invoiceProto.Invoice.service, InvoiceController);
+  server.addProtoService(userProto.User.service, UserController);
   server.bind(`0.0.0.0:${port}`, grpc.ServerCredentials.createInsecure());
   server.start();
 

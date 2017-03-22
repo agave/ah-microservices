@@ -42,6 +42,8 @@ type EngineInterface interface {
 	DropTables(beans ...interface{}) error
 	Delete(bean interface{}) (int64, error)
 	Close() error
+	Id(id interface{}) *xorm.Session
+	IsTableExist(beanOrTableName interface{}) (bool, error)
 }
 
 // SessionInterface is used to mock xorm.Session objects during unit tests

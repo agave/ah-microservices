@@ -42,7 +42,8 @@ module.exports = {
     invoiceInstance: invoiceInstance,
     invoiceSummary: invoiceInstance.summary(),
     updateData: {
-      status: 'new'
+      status: 'new',
+      investor_id: null
     }
   },
   funderNotFound: {
@@ -51,7 +52,8 @@ module.exports = {
     invoiceInstance: invoiceInstance,
     invoiceSummary: invoiceInstance.summary(),
     updateData: {
-      status: 'new'
+      status: 'new',
+      investor_id: null
     }
   }
 };

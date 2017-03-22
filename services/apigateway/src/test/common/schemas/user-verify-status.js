@@ -2,13 +2,9 @@ module.exports = {
   required: true,
   type: 'object',
   properties: {
-    value: {
+    canUserFund: {
       required: true,
-      type: 'string'
-    },
-    expiration: {
-      required: true,
-      type: 'integer'
+      type: 'boolean'
     }
   }
 };

@@ -4,14 +4,35 @@ module.exports = {
   properties: {
     id: {
       required: true,
-      type: 'integer'
+      anyOf: [
+        {
+          type: 'number'
+        },
+        {
+          type: 'string'
+        }
+      ]
     },
     provider_id: {
       required: true,
-      type: 'integer'
+      anyOf: [
+        {
+          type: 'number'
+        },
+        {
+          type: 'string'
+        }
+      ]
     },
     investor_id: {
-      type: 'integer'
+      anyOf: [
+        {
+          type: 'number'
+        },
+        {
+          type: 'string'
+        }
+      ]
     },
     amount: {
       required: true,

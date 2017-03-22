@@ -24,6 +24,9 @@ services:
     image: agavelab/logstash
     links:
       - elasticsearch
+    volumes:
+      - ./logstash/config:/config
+      - ./logstash/patterns:/opt/logstash/extra_patterns
     restart: always
     labels:
       container_group: monitoring
@@ -33,6 +36,7 @@ services:
     image: logstash:2
     volumes:
       - ./logstash/config:/config
+      - ./logstash/patterns:/opt/logstash/extra_patterns
     labels:
       container_group: monitoring
 
@@ -62,6 +66,8 @@ services:
       - 5601:5601
     links:
       - elasticsearch
+    volumes:
+      - ./kibana/config:/opt/kibana/config
     restart: always
     environment:
       - NODE_OPTIONS=--max-old-space-size=200 # fixes memory leak (https://github.com/elastic/kibana/issues/5170)
@@ -83,7 +89,7 @@ services:
     expose:
       - 8080
     ports:
-      - 8080:8080
+      - 8081:8080
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
@@ -103,6 +109,8 @@ services:
       - 9090:9090
     volumes:
       - ./storage/prometheus:/prometheus
+      - ./prometheus/rules:/etc/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     links:
       - nodeexporter
       - cadvisor
@@ -119,6 +127,8 @@ services:
     image: agavelab/grafana
     ports:
       - 4000:3000
+    volumes:
+      - ./grafana:/var/lib/grafana
     restart: always
     environment:
       - GF_SECURITY_ADMIN_USER=admin
@@ -137,6 +147,7 @@ services:
     restart: always
     volumes:
       - ./storage/alertmanager/:/alertmanager
+      - ./alertmanager:/etc/alertmanager
     links:
       - logstash
     labels:

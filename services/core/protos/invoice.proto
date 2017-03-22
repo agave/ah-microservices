@@ -9,13 +9,13 @@ service Invoice {
 
 message InvoiceId {
   string guid = 1;
-  int32 id = 2;
+  string id = 2;
 }
 
 message InvoiceInfo {
-  int32 id = 1;
-  int32 provider_id = 2;
-  int32 investor_id = 3;
+  string id = 1;
+  string provider_id = 2;
+  string investor_id = 3;
   double amount = 4;
   string status = 5;
   string created_at = 6;
@@ -24,12 +24,12 @@ message InvoiceInfo {
 
 message InvoiceCreateParams {
   string guid = 1;
-  int32 provider_id = 2;
+  string provider_id = 2;
   double amount = 3;
 }
 
 message InvoiceFundParams {
   string guid = 1;
-  int32 id = 2;
-  int32 investor_id = 3;
+  string id = 2;
+  string investor_id = 3;
 }

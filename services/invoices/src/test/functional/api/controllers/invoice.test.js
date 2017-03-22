@@ -81,7 +81,7 @@ describe('functional/Invoice controller', () => {
       .then(validate(invoiceSchema))
       .then(invoice => {
         invoice.status.should.be.equal('pending_fund');
-        invoice.investor_id.should.be.equal(fundInvoice.investor_id);
+        invoice.investor_id.should.be.equal(String(fundInvoice.investor_id));
       })
       .then(() => helper.getNextEvent())
       .then(validate(invoiceUpdatedSchema));
