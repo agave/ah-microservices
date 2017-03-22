@@ -18,6 +18,22 @@ import (
 // UserServer implements user service functionality through grpc
 type userServer struct{}
 
+var userUpdater updateUserInterface
+
+type updateUserInterface interface {
+	Update(int64, []string, interface{}) (int64, error)
+}
+
+type updateUser struct{}
+
+func (s *updateUser) Update(id int64, cols []string, bean interface{}) (int64, error) {
+	return db.Engine.Id(id).Cols(cols...).Update(bean)
+}
+
+func init() {
+	userUpdater = &updateUser{}
+}
+
 // GetUser looks for the Id param in the database and returns user details if found
 func (s *userServer) GetUser(ctx xContext.Context, id *userGen.Id) (*userGen.Profile, error) {
 	GUIDID := log.Fields{"GUID": id.GetGuid(), "ID": id.GetId()}
@@ -27,7 +43,7 @@ func (s *userServer) GetUser(ctx xContext.Context, id *userGen.Id) (*userGen.Pro
 
 	if realID <= 0 || err != nil {
 		log.WithFields(GUIDID).Info("Not Found")
-		return &userGen.Profile{}, grpc.Errorf(codes.NotFound, "Not Found")
+		return nil, grpc.Errorf(codes.NotFound, "Not Found")
 	}
 
 	log.WithFields(GUIDID).Info("Searching for user in db")
@@ -36,7 +52,7 @@ func (s *userServer) GetUser(ctx xContext.Context, id *userGen.Id) (*userGen.Pro
 	h, err := db.Engine.Get(&u)
 	if err != nil {
 		log.WithFields(GUIDID).Info("Internal DB Error")
-		return &userGen.Profile{}, grpc.Errorf(codes.Internal, "%s", err.Error())
+		return nil, grpc.Errorf(codes.Internal, "%s", err.Error())
 	}
 
 	if h {
@@ -49,31 +65,31 @@ func (s *userServer) GetUser(ctx xContext.Context, id *userGen.Id) (*userGen.Pro
 	}
 
 	log.WithFields(GUIDID).Info("Not Found")
-	return &userGen.Profile{}, grpc.Errorf(codes.NotFound, "Not Found")
+	return nil, grpc.Errorf(codes.NotFound, "Not Found")
 }
 
 // CreateUser creates a user in the database based on the Create param
 func (s *userServer) CreateUser(ctx xContext.Context, c *userGen.Create) (*userGen.Profile, error) {
 	//TODO: email format/security validation
 	if c.GetEmail() == "" {
-		return &userGen.Profile{},
+		return nil,
 			grpc.Errorf(codes.InvalidArgument, "Email can't be empty")
 	}
 
 	if c.Balance < 0 {
-		return &userGen.Profile{},
+		return nil,
 			grpc.Errorf(codes.InvalidArgument, "Balance can't be negative")
 	}
 
 	user := user.Users{Email: c.GetEmail()}
 	exists, err := db.Engine.Get(&user)
 	if err != nil {
-		return &userGen.Profile{},
+		return nil,
 			grpc.Errorf(codes.Unknown, "Unable to create user")
 	}
 
 	if exists {
-		return &userGen.Profile{},
+		return nil,
 			grpc.Errorf(codes.AlreadyExists, "User already exists")
 	}
 
@@ -89,7 +105,7 @@ func (s *userServer) CreateUser(ctx xContext.Context, c *userGen.Create) (*userG
 		}, nil
 	}
 
-	return &userGen.Profile{},
+	return nil,
 		grpc.Errorf(codes.Unknown, "Unable to create user")
 }
 
@@ -150,7 +166,7 @@ func (s *userServer) UpdateUser(ctx xContext.Context,
 		dbErr error
 	)
 	bean := &user.Users{Email: c.GetEmail(), Balance: c.GetBalance()}
-	aff, dbErr = db.Engine.Id(realID).Cols(cols...).Update(bean)
+	aff, dbErr = userUpdater.Update(realID, cols, bean)
 	if aff != 1 || dbErr != nil {
 		log.WithFields(log.Fields{
 			"GUID": c.GetGuid(), "error": err,
