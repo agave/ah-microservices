@@ -24,7 +24,7 @@ func (s *EventsUnitSuite) TestParseEvent() {
 	s.A.Nil(err)
 	s.A.NotNil(e)
 
-	e, err = parseEvent(&sarama.ConsumerMessage{Value: []byte(b)})
+	_, err = parseEvent(&sarama.ConsumerMessage{Value: []byte(b)})
 	s.A.NotNil(err)
 }
 
