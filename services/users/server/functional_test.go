@@ -62,12 +62,12 @@ func (s *ServerFunctionalSuite) TestGetUser() {
 	}
 
 	h := &userGen.Create{Email: "admin@admin.com", Balance: 0}
-	p, _ := grpcClient.CreateUser(context.TODO(), h)
+	prof, _ := grpcClient.CreateUser(context.TODO(), h)
 
 	tc := testCases{
 		Ins: []*userGen.Id{
-			&userGen.Id{Guid: "1", Id: p.GetId()}, // happy
-			&userGen.Id{Guid: "2", Id: "10000"},   // not found
+			&userGen.Id{Guid: "1", Id: prof.GetId()}, // happy
+			&userGen.Id{Guid: "2", Id: "10000"},      // not found
 			&userGen.Id{Guid: "3", Id: "-99999"},
 		},
 		Outs: []codes.Code{
