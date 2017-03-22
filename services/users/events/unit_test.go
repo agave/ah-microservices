@@ -1,7 +1,12 @@
 package events
 
 import (
+	"errors"
+	"time"
+
 	"github.com/Shopify/sarama"
+	"github.com/Shopify/sarama/mocks"
+	"github.com/agave/ah-microservices/services/users/user"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
@@ -50,4 +55,34 @@ func (s *EventsUnitSuite) TestProducerInit() {
 	err := ep.Init()
 	s.A.Nil(err)
 	ep.AsyncProducer.Close()
+}
+
+func (s *EventsUnitSuite) TestProducer() {
+	conf := sarama.NewConfig()
+	conf.Producer.Return.Errors = true
+	conf.Producer.Return.Successes = true
+
+	mp := mocks.NewAsyncProducer(s.T(), conf)
+	mp.ExpectInputAndSucceed()
+	mp.ExpectInputAndFail(errors.New(""))
+
+	producer := &EventProducer{
+		AsyncProducer: mp,
+	}
+	defer producer.AsyncProducer.AsyncClose()
+
+	go producer.HandleIncoming()
+
+	suc := &user.Event{
+		Type: "Test",
+	}
+
+	err := producer.Outbound(suc)
+	time.Sleep(time.Second)
+	s.A.Nil(err)
+	s.A.Equal(int64(1), producer.Successes)
+
+	err = producer.Outbound(suc)
+	time.Sleep(time.Second)
+	s.A.Equal(int64(1), producer.Errors)
 }
