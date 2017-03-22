@@ -13,8 +13,7 @@ var KafkaClient *cluster.Client
 
 // Init configures and starts our kafka client (used to create
 // consumers and producers)
-func Init() {
-	var err error
+func Init() (err error) {
 	conf := cluster.NewConfig()
 	conf.Producer.Return.Errors = true
 	conf.Producer.Return.Successes = true
@@ -24,4 +23,5 @@ func Init() {
 	if err != nil {
 		log.WithField("error", err).Panicln("Error on Client creation")
 	}
+	return
 }
