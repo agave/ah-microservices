@@ -87,13 +87,18 @@ describe('Invoice tests', function() {
     });
 
     it('should revert invoice status to new if investor doesn\'t have enough money', () => {
-      return API.createUser(userFixtures.createUserWithoutMoneyRequest())
+      return API.createUser(userFixtures.createUserWithoutMoneyRequest()) // Create provider
+      .then(() => API.createUser(userFixtures.createUserWithoutMoneyRequest())) // Create investor
       .then(({ data }) => {
         const request = invoiceFixtures.validFundInvoiceRequest(createdInvoice.id);
 
         request.investor_id = data.id;
 
         return API.fundInvoice(request);
+      })
+      .catch(err => {
+        console.log(err);
+        throw err;
       })
       .should.be.fulfilled
       .then(({ data }) => data.status.should.be.equal('pending_fund'))
