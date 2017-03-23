@@ -96,10 +96,6 @@ describe('Invoice tests', function() {
 
         return API.fundInvoice(request);
       })
-      .catch(err => {
-        console.log(err);
-        throw err;
-      })
       .should.be.fulfilled
       .then(({ data }) => data.status.should.be.equal('pending_fund'))
       .then(waitForEvent())
